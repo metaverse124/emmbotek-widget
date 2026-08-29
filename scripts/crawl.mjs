@@ -10,12 +10,26 @@ const started = Date.now();
 console.log(`Synchronizacja wiedzy z ${config.site.sitemap}`);
 
 const base = await loadBase();
-const { base: updated, report } = await syncKnowledge(base, {
-  onProgress: (event) => {
-    if (event.phase === 'sitemap') console.log(`Znaleziono ${event.total} adresow w sitemap.`);
-    if (event.phase === 'fetch' && event.done % 10 === 0) console.log(`  pobrano ${event.done}/${event.total}`);
-  },
-});
+
+let updated;
+let report;
+try {
+  ({ base: updated, report } = await syncKnowledge(base, {
+    onProgress: (event) => {
+      if (event.phase === 'sitemap') console.log(`Znaleziono ${event.total} adresow w sitemap.`);
+      if (event.phase === 'fetch' && event.done % 10 === 0) console.log(`  pobrano ${event.done}/${event.total}`);
+    },
+  }));
+} catch (error) {
+  // Nieosiagalna sitemap to najczestszy powod niepowodzenia (blokada sieci, WAF, literowka w adresie).
+  // Nie nadpisujemy wtedy istniejacej bazy wiedzy - zostaje ostatnia dobra wersja.
+  console.error(`\nNie udalo sie pobrac sitemap: ${error.message}`);
+  console.error('Baza wiedzy pozostala bez zmian. Sprawdz:');
+  console.error(`  1. czy adres ${config.site.sitemap} otwiera sie w przegladarce,`);
+  console.error('  2. czy siec/firewall nie blokuje domeny,');
+  console.error('  3. czy serwer nie odrzuca User-Agenta crawlera (403 z WAF).');
+  process.exit(1);
+}
 
 await saveBase(updated);
 
