@@ -154,13 +154,34 @@ Odpowiedź:
 }
 ```
 
-`POST /api/sync` — synchronizacja wiedzy (nagłówek `x-sync-token`); cron dzienny w `vercel.json`,
-można też wywołać webhookiem CMS po publikacji treści.
+`POST /api/sync` — synchronizacja wiedzy. Akceptuje sekret w nagłówku `x-sync-token`
+albo `Authorization: Bearer`. Uznawane są dwa: `SYNC_TOKEN` (webhook CMS, wywołanie ręczne)
+oraz `CRON_SECRET` — ten drugi wysyła Vercel Cron, więc **bez ustawienia `CRON_SECRET`
+codzienny cron dostanie 401 i baza wiedzy nigdy się nie odświeży**.
+
+Przebieg crawla jest ograniczony budżetem czasu (`CRAWLER_MAX_DURATION_MS`, domyślnie 25 s),
+żeby zmieścić się w limicie funkcji serverless. Po przekroczeniu budżetu zapisywane jest to,
+co zdążył zebrać, a raport zawiera `timedOut: true` i `remaining`. **Niepełny przebieg nigdy
+nie archiwizuje stron, których nie zdążył odwiedzić** — inaczej przerwany cron wyczyściłby
+całą bazę wiedzy. Archiwizowane są wyłącznie adresy, które faktycznie zniknęły z sitemapy;
+strona, która chwilowo zwróciła błąd, pozostaje aktywna.
 
 `POST /api/analytics` — anonimowe liczniki `cta_impression` / `cta_click`.
 Nie przyjmuje IP, sessionId ani treści rozmowy; z adresu zostaje sama ścieżka.
 
 ---
+
+## Trwałość bazy wiedzy — do rozstrzygnięcia przed produkcją
+
+`loadBase`/`saveBase` zapisują plik JSON pod `KNOWLEDGE_PATH`. To działa lokalnie i na VPS,
+ale **nie na platformach serverless**: katalog aplikacji jest tam tylko do odczytu, a `/tmp`
+znika razem z instancją. W efekcie `/api/sync` albo zwróci błąd zapisu (z jawnym komunikatem
+i kodem `EROFS`), albo zaktualizuje wiedzę tylko dla jednej, chwilowej instancji.
+
+Docelowo podmień `load`/`save` przekazywane do `createSyncHandler` (oraz odczyt w `api/chat.js`)
+na trwały magazyn — Vercel KV, Vercel Blob, Supabase albo zwykłą bazę. Interfejs jest wąski:
+dwie funkcje `() => Promise<base>` i `(base) => Promise<void>`, więc adapter to kilkanaście linii.
+Wybór magazynu to decyzja infrastrukturalna, dlatego nie jest zaszyty w kodzie.
 
 ## Bezpieczeństwo
 
@@ -168,8 +189,11 @@ Nie przyjmuje IP, sessionId ani treści rozmowy; z adresu zostaje sama ścieżka
 - Rate limit po IP (sliding window), allowlista `Origin`, limit 600 znaków, limit historii.
 - Treść strony trafia do modelu jako **dane w bloku `<<<WIEDZA … WIEDZA>>>`**, nigdy jako instrukcje;
   wzorce typu „Ignore previous instructions” są neutralizowane (`src/agent/injectionGuard.js`).
-- CTA zaproponowane przez model są walidowane — adres musi pochodzić z mapy CTA
-  zbudowanej podczas indeksowania (blokuje `javascript:` i wymyślone URL-e).
+- CTA zaproponowane przez model są walidowane względem mapy CTA zbudowanej podczas
+  indeksowania: cel musi być **tym samym adresem**, który crawler zaindeksował (dozwolona jest
+  jedynie doklejona kotwica do sekcji). Sam schemat `https://` nie jest autoryzacją — bez tego
+  porównania błąd modelu albo udana prompt injection zamieniałyby zaufane CTA w link phishingowy.
+  Adres spoza mapy jest zastępowany adresem z katalogu, a gdy takiego nie ma — CTA nie powstaje.
 - Przy 429 z Gemini użytkownik dostaje komunikat i kontakt do sekretariatu, nigdy surowy błąd.
 
 ## RODO
@@ -192,7 +216,7 @@ i `forced-colors`.
 npm test
 ```
 
-93 testy pokrywają checklistę jakości z sekcji 46 briefu — m.in. test aktualnej ceny,
+106 testów pokrywa checklistę jakości z sekcji 46 briefu — m.in. test aktualnej ceny,
 zmiany ceny, nowego wpisu blogowego, nowej aktualności, usuniętej podstrony, starej promocji,
 konfliktu źródeł, braku wiedzy, luk wiedzy, prompt injection, 429, CTA i integralności awatara.
 Mapowanie „punkt briefu → test” znajduje się w [`docs/zgodnosc-z-briefem.md`](docs/zgodnosc-z-briefem.md).

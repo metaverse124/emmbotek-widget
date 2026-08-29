@@ -1,12 +1,25 @@
 /**
  * /api/sync - synchronizacja Living Knowledge Base.
  * Uruchamiana: przy deployu, cyklicznie (cron) oraz opcjonalnie webhookiem CMS po publikacji tresci.
- * Chroniona tokenem (naglowek x-sync-token lub Bearer).
+ * Chroniona sekretem przekazanym w naglowku `x-sync-token` albo `Authorization: Bearer`.
+ * Akceptujemy SYNC_TOKEN (webhook CMS, wywolanie reczne) oraz CRON_SECRET (Vercel Cron,
+ * ktory wysyla wlasny sekret w naglowku Authorization).
  */
+import { timingSafeEqual } from 'node:crypto';
+
 import config from '../../config.js';
 import { json } from '../http.js';
 import { loadBase, saveBase } from '../../knowledge/store.js';
 import { syncKnowledge } from '../../crawler/run.js';
+
+/** Porownanie odporne na atak czasowy. */
+const secretsMatch = (a, b) => {
+  if (!a || !b) return false;
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+  if (left.length !== right.length) return false;
+  return timingSafeEqual(left, right);
+};
 
 const tokenFrom = (req) => {
   const header = req.headers?.['x-sync-token'];
@@ -15,15 +28,28 @@ const tokenFrom = (req) => {
   return auth.startsWith('Bearer ') ? auth.slice(7) : '';
 };
 
-export function createSyncHandler({ sync = syncKnowledge, load = loadBase, save = saveBase } = {}) {
+/**
+ * @param {object} deps
+ * @param {() => string[]} deps.secrets  akceptowane sekrety; domyslnie czytane z konfiguracji
+ *   przy kazdym zadaniu (wstrzykiwalne na potrzeby testow)
+ */
+export function createSyncHandler({
+  sync = syncKnowledge,
+  load = loadBase,
+  save = saveBase,
+  secrets = () => [config.security.syncToken, config.security.cronSecret],
+} = {}) {
   return async function syncHandler(req, res) {
     if (req.method !== 'POST' && req.method !== 'GET') {
       return json(res, 405, { error: 'Dozwolone metody: GET, POST.' });
     }
-    if (!config.security.syncToken) {
-      return json(res, 500, { error: 'Brak SYNC_TOKEN po stronie serwera.' });
+    const accepted = secrets().filter(Boolean);
+    if (!accepted.length) {
+      return json(res, 500, { error: 'Brak SYNC_TOKEN (lub CRON_SECRET) po stronie serwera.' });
     }
-    if (tokenFrom(req) !== config.security.syncToken) {
+
+    const presented = tokenFrom(req);
+    if (!accepted.some((secret) => secretsMatch(presented, secret))) {
       return json(res, 401, { error: 'Nieprawidlowy token synchronizacji.' });
     }
 
@@ -45,6 +71,16 @@ export function createSyncHandler({ sync = syncKnowledge, load = loadBase, save 
         ctaTargets: report.ctaTargets,
       });
     } catch (error) {
+      // Na platformach serverless katalog aplikacji jest tylko do odczytu, a /tmp znika
+      // razem z instancja. Mowimy to wprost, zamiast zwracac goly blad zapisu.
+      if (['EROFS', 'EACCES', 'EPERM'].includes(error.code)) {
+        return json(res, 500, {
+          ok: false,
+          error: 'Nie mozna zapisac bazy wiedzy: system plikow jest tylko do odczytu. '
+            + 'Skonfiguruj trwaly magazyn (KV / blob / baza danych) i podmien load/save w api/sync.js.',
+          code: error.code,
+        });
+      }
       return json(res, 500, { ok: false, error: error.message });
     }
   };

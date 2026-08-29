@@ -42,6 +42,11 @@ export const config = {
   security: {
     allowedOrigins: list('ALLOWED_ORIGINS', ['https://emmastudio.pl', 'https://www.emmastudio.pl']),
     syncToken: env('SYNC_TOKEN', ''),
+    /**
+     * Vercel Cron wysyla `Authorization: Bearer $CRON_SECRET`, a nie nasz SYNC_TOKEN.
+     * Akceptujemy oba, zeby cron dzialal bez recznego ustawiania naglowka.
+     */
+    cronSecret: env('CRON_SECRET', ''),
     rateLimit: {
       windowMs: num('RATE_LIMIT_WINDOW_MS', 60000),
       max: num('RATE_LIMIT_MAX', 15),
@@ -58,6 +63,11 @@ export const config = {
     maxPages: num('CRAWLER_MAX_PAGES', 300),
     requestTimeoutMs: num('CRAWLER_TIMEOUT_MS', 15000),
     politenessDelayMs: num('CRAWLER_DELAY_MS', 350),
+    /**
+     * Budzet czasu jednego przebiegu. Funkcja serverless ma twardy limit (30 s na Vercel),
+     * wiec crawl konczy sie wczesniej i zapisuje to, co zdazyl zebrac.
+     */
+    maxDurationMs: num('CRAWLER_MAX_DURATION_MS', 25000),
   },
   knowledge: {
     path: env('KNOWLEDGE_PATH', 'data/knowledge.json'),

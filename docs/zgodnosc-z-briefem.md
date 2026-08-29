@@ -35,7 +35,8 @@ mogą mieć pole `embedding` — wtedy wynik semantyczny (0,55) miesza się z le
 |---|---|---|
 | Automatyczne wykrywanie aktualności i bloga | klasyfikacja `NEWS` / `BLOG` + `syncKnowledge` | `crawler.test.js` |
 | Indeksowanie nowych kursów i wydarzeń | `mergeDocuments` (added/updated/archived) | `knowledge.test.js` |
-| Webhook + cykliczna synchronizacja | `api/sync.js`, `crons` w `vercel.json` | — |
+| Webhook + cykliczna synchronizacja | `api/sync.js`, `crons` w `vercel.json` | `sync.test.js` |
+| Budżet czasu przebiegu (limit funkcji serverless) | `syncKnowledge` + `CRAWLER_MAX_DURATION_MS` | `sync.test.js` |
 
 ## Agent (sekcje 12–16, 37–40)
 
@@ -105,8 +106,12 @@ System Prompt zabrania zbierania danych osobowych od dzieci.
 ## Świadomie poza zakresem
 
 - **Embeddings** — interfejs gotowy, ale wektory wymagają zewnętrznego modelu (etap 2 z sekcji 10).
-- **Trwały magazyn analityki i luk wiedzy** — obecnie plik JSON; na produkcji wielo-instancyjnej
-  należy podmienić `read`/`write` w `api/analytics.js` oraz `onGap` w `api/chat.js` na KV/Redis.
+- **Trwały magazyn wiedzy, analityki i luk** — obecnie pliki JSON; na platformie serverless
+  katalog aplikacji jest tylko do odczytu, a `/tmp` znika razem z instancją. Do podmiany:
+  `load`/`save` w `api/sync.js`, `read`/`write` w `api/analytics.js` oraz `onGap` w `api/chat.js`.
+  Interfejsy są wąskie, adapter do KV/Blob/bazy to kilkanaście linii; wybór magazynu to decyzja
+  infrastrukturalna, więc nie jest zaszyty w kodzie. `/api/sync` zwraca w tej sytuacji jawny
+  komunikat z kodem `EROFS`, zamiast cicho gubić aktualizację.
 - **Rate limit współdzielony między instancjami** — `createRateLimiter` trzyma stan w pamięci procesu;
   interfejs `consume(key)` pozwala podmienić store bez zmian w handlerze.
 - **Realna treść strony** — `data/knowledge.json` zawiera bazę startową z faktów potwierdzonych

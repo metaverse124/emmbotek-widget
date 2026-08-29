@@ -64,16 +64,29 @@ export async function syncKnowledge(base, {
   maxPages = config.crawler.maxPages,
   delayMs = config.crawler.politenessDelayMs,
   minContentChars = 60,
+  maxDurationMs = config.crawler.maxDurationMs,
   now = new Date().toISOString(),
   onProgress = () => {},
 } = {}) {
+  const startedAt = Date.now();
+  const deadline = maxDurationMs ? startedAt + maxDurationMs : Infinity;
+
   const entries = (await collectUrls(sitemapUrl, fetchText)).slice(0, maxPages);
   onProgress({ phase: 'sitemap', total: entries.length });
 
   const pages = [];
   const failures = [];
+  let timedOut = false;
 
   for (const [index, entry] of entries.entries()) {
+    // Funkcja serverless ma twardy limit czasu - konczymy wczesniej i zapisujemy dorobek,
+    // zamiast zostac ubitym przed zapisem.
+    if (Date.now() >= deadline) {
+      timedOut = true;
+      onProgress({ phase: 'timeout', done: index, total: entries.length });
+      break;
+    }
+
     try {
       const html = await fetchText(entry.url);
       const page = extractContent(html, { url: entry.url });
@@ -86,13 +99,18 @@ export async function syncKnowledge(base, {
       failures.push({ url: entry.url, reason: error.message });
     }
     onProgress({ phase: 'fetch', done: index + 1, total: entries.length, url: entry.url });
-    if (delayMs) await sleep(delayMs);
+    if (delayMs && Date.now() + delayMs < deadline) await sleep(delayMs);
   }
 
   const cleaned = removeBoilerplate(pages);
   const documents = cleaned.map((page) => pageToDocument(page, { lastmod: page.lastmod }));
 
-  const { base: merged, report } = mergeDocuments(base, documents, { now });
+  const knownUrls = new Set(entries.map((entry) => entry.url));
+  const { base: merged, report } = mergeDocuments(base, documents, {
+    now,
+    archiveMissing: !timedOut,
+    knownUrls,
+  });
   merged.ctaMap = buildCtaMap(merged, { now: Date.parse(now) });
   merged.generatedAt = merged.generatedAt ?? now;
 
@@ -103,6 +121,9 @@ export async function syncKnowledge(base, {
       crawled: pages.length,
       failed: failures,
       ctaTargets: Object.keys(merged.ctaMap).length,
+      timedOut,
+      remaining: timedOut ? entries.length - pages.length - failures.length : 0,
+      durationMs: Date.now() - startedAt,
     },
   };
 }

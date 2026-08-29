@@ -79,8 +79,19 @@ export async function saveBase(base, filePath = config.knowledge.path) {
  * Scala swiezo zescrapowane dokumenty z istniejaca baza.
  * Wykrywa: nowe, zmienione (inny contentHash -> revision + 1), niezmienione i usuniete
  * (status "archived" zamiast twardego kasowania - zachowujemy historie).
+ *
+ * @param {object} options
+ * @param {boolean} options.archiveMissing  false przy niepelnym crawlu (timeout) - inaczej
+ *   przerwany przebieg zarchiwizowalby cala strone, ktorej po prostu nie zdazyl odwiedzic.
+ * @param {Set<string>|null} options.knownUrls  adresy obecne w sitemap podczas tego przebiegu.
+ *   Strona, ktora jest w sitemap, ale chwilowo nie odpowiedziala (blad 500, timeout),
+ *   zostaje aktywna - archiwizujemy tylko to, co faktycznie zniknelo ze strony.
  */
-export function mergeDocuments(base, incoming, { now = new Date().toISOString() } = {}) {
+export function mergeDocuments(base, incoming, {
+  now = new Date().toISOString(),
+  archiveMissing = true,
+  knownUrls = null,
+} = {}) {
   const previous = new Map(base.documents.map((doc) => [doc.sourceUrl ?? doc.id, doc]));
   const seen = new Set();
   const report = { added: [], updated: [], unchanged: [], archived: [] };
@@ -116,6 +127,11 @@ export function mergeDocuments(base, incoming, { now = new Date().toISOString() 
 
   for (const [key, old] of previous) {
     if (seen.has(key)) continue;
+    const stillOnSite = knownUrls ? knownUrls.has(key) : false;
+    if (!archiveMissing || stillOnSite) {
+      documents.push(old);
+      continue;
+    }
     report.archived.push(key);
     documents.push({ ...old, status: 'archived', archivedAt: old.archivedAt ?? now });
   }

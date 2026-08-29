@@ -164,7 +164,62 @@ export function buildCtas(input) {
   return result.slice(0, 2);
 }
 
-/** Waliduje i przycina CTA zaproponowane przez model (sekcja 32). */
+/**
+ * Zbiera adresy, ktore realnie istnieja w mapie CTA (zbudowanej podczas indeksowania strony).
+ * To jedyne cele, jakie wolno wskazac modelowi.
+ */
+function allowedTargets(ctaMap) {
+  const allowed = new Set();
+  for (const entry of Object.values(ctaMap ?? {})) {
+    if (!entry?.url) continue;
+    allowed.add(entry.url);
+    try {
+      allowed.add(new URL(entry.url).pathname);
+    } catch { /* adres wzgledny - wystarczy sama wartosc */ }
+  }
+  return allowed;
+}
+
+/**
+ * Sprawdza, czy adres podany przez model pokrywa sie z zaindeksowanym celem.
+ * Sam schemat http(s) NIE jest autoryzacja: bez tego porownania blad modelu lub udana
+ * prompt injection zamienialyby zaufane CTA w link phishingowy.
+ * Dozwolona jest wylacznie kotwica doklejona do znanego adresu.
+ */
+function isIndexedTarget(target, ctaMap) {
+  const allowed = allowedTargets(ctaMap);
+  if (!allowed.size) return false;
+
+  const [base] = target.split('#');
+  if (allowed.has(base) || allowed.has(target)) return true;
+
+  // wariant bez/ze slashem koncowym oraz sama sciezka adresu absolutnego
+  const variants = new Set([base, base.endsWith('/') ? base.slice(0, -1) : `${base}/`]);
+  try {
+    const url = new URL(base);
+    variants.add(url.pathname);
+    variants.add(url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : `${url.pathname}/`);
+  } catch { /* adres wzgledny */ }
+
+  for (const variant of variants) {
+    if (allowed.has(variant)) return true;
+  }
+  return false;
+}
+
+/** Adres wyliczony z katalogu CTA i mapy - zawsze zaufany, bo nie pochodzi od modelu. */
+function catalogTarget(definition, ctaMap, contact) {
+  return ctaUrl(ctaMap, definition.target)
+    ?? (definition.fallbackTarget ? ctaUrl(ctaMap, definition.fallbackTarget, { anchor: definition.fallbackAnchor }) : null)
+    ?? (definition.action === 'call' && contact.phone ? `tel:${contact.phone.replace(/\s/g, '')}` : null)
+    ?? (definition.action === 'email' && contact.email ? `mailto:${contact.email}` : null);
+}
+
+/**
+ * Waliduje i przycina CTA zaproponowane przez model (sekcja 32).
+ * Cel musi pochodzic z mapy CTA zbudowanej przy indeksowaniu strony - adres spoza niej
+ * jest odrzucany i zastepowany adresem z katalogu albo CTA w ogole nie powstaje.
+ */
 export function sanitizeModelCtas(list, { ctaMap = {}, contact = {} } = {}) {
   if (!Array.isArray(list)) return [];
   const out = [];
@@ -175,14 +230,19 @@ export function sanitizeModelCtas(list, { ctaMap = {}, contact = {} } = {}) {
     const definition = CATALOG[type];
     if (!definition) continue;
 
-    let target = typeof item.target === 'string' ? item.target.trim() : '';
-    const allowed = /^(\/|https?:\/\/|tel:|mailto:|#)/.test(target);
-    if (!target || !allowed) {
-      target = ctaUrl(ctaMap, definition.target)
-        ?? (definition.fallbackTarget ? ctaUrl(ctaMap, definition.fallbackTarget, { anchor: definition.fallbackAnchor }) : null)
-        ?? (definition.action === 'call' && contact.phone ? `tel:${contact.phone.replace(/\s/g, '')}` : null)
-        ?? (definition.action === 'email' && contact.email ? `mailto:${contact.email}` : null);
+    const proposed = typeof item.target === 'string' ? item.target.trim() : '';
+    const knownPhone = contact.phone ? `tel:${contact.phone.replace(/\s/g, '')}` : null;
+    const knownEmail = contact.email ? `mailto:${contact.email}` : null;
+
+    let target = null;
+    if (proposed === knownPhone || proposed === knownEmail) {
+      target = proposed;
+    } else if (/^(https?:\/\/|\/)/.test(proposed) && isIndexedTarget(proposed, ctaMap)) {
+      target = proposed;
+    } else {
+      target = catalogTarget(definition, ctaMap, contact);
     }
+
     if (!target) continue;
 
     out.push({

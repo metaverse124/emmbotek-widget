@@ -87,6 +87,44 @@ test('CTA od modelu z lewym adresem jest podmieniane na adres z mapy', () => {
   assert.equal(cta[0].target, 'https://emmastudio.pl/cennik/');
 });
 
+test('adres spoza mapy CTA nie przechodzi, nawet gdy jest poprawnym https', () => {
+  // Blad modelu albo udana prompt injection nie moga zamienic zaufanego CTA w link phishingowy.
+  const cta = sanitizeModelCtas(
+    [{ type: 'VIEW_PRICE', label: 'Cennik', target: 'https://attacker.example/phish' }],
+    { ctaMap },
+  );
+  assert.equal(cta.length, 1);
+  assert.equal(cta[0].target, 'https://emmastudio.pl/cennik/', 'adres powinien zostac podmieniony na zaindeksowany');
+});
+
+test('wymyslona podstrona wlasnej domeny tez jest odrzucana', () => {
+  const cta = sanitizeModelCtas(
+    [{ type: 'VIEW_PRICE', label: 'Cennik', target: 'https://emmastudio.pl/promocja-ktorej-nie-ma/' }],
+    { ctaMap },
+  );
+  assert.equal(cta[0].target, 'https://emmastudio.pl/cennik/');
+});
+
+test('gdy nie ma zadnego zaindeksowanego celu, CTA w ogole nie powstaje', () => {
+  assert.deepEqual(
+    sanitizeModelCtas([{ type: 'VIEW_PRICE', target: 'https://attacker.example/phish' }], { ctaMap: {} }),
+    [],
+  );
+});
+
+test('zaindeksowany adres z kotwica do sekcji przechodzi bez zmian', () => {
+  const cta = sanitizeModelCtas(
+    [{ type: 'VIEW_PRICE', label: 'Cennik', target: 'https://emmastudio.pl/cennik/#dorosli' }],
+    { ctaMap },
+  );
+  assert.equal(cta[0].target, 'https://emmastudio.pl/cennik/#dorosli');
+});
+
+test('sciezka wzgledna znanego celu jest akceptowana', () => {
+  const cta = sanitizeModelCtas([{ type: 'VIEW_PRICE', target: '/cennik/' }], { ctaMap });
+  assert.equal(cta[0].target, '/cennik/');
+});
+
 test('CTA nieznanego typu jest odrzucane', () => {
   assert.deepEqual(sanitizeModelCtas([{ type: 'KUP_TERAZ', target: '/promo/' }], { ctaMap }), []);
 });

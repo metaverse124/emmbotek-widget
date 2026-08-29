@@ -34,7 +34,7 @@ test('parser czyta JSON z modelu razem z CTA i profilem', () => {
     cta: [{ type: 'VIEW_FOR_CHILDREN', label: 'Oferta dla dzieci', target: '/kursy-dla-dzieci/' }],
     profil: { dlaKogo: 'dziecko', jezyk: 'angielski' },
     intent: 'CHILD',
-  }));
+  }), { ctaMap: { COURSE_CHILDREN: { url: 'https://emmastudio.pl/kursy-dla-dzieci/', anchors: [] } } });
   assert.equal(parsed.emotion, 'SMILE');
   assert.equal(parsed.message, 'Dla dziewieciolatki polecam grupe dla dzieci.');
   assert.equal(parsed.cta.length, 1);
