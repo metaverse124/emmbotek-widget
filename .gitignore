@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.local
+.vercel
+*.log
+.DS_Store
+
+# runtime (generowane w czasie dzialania)
+data/knowledge-gaps.json
+data/analytics.json

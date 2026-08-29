@@ -1,0 +1,78 @@
+/**
+ * /api/analytics - anonimowa telemetria CTA i luk wiedzy (sekcje 33 i 40 briefu).
+ *
+ * Nie przyjmujemy i nie zapisujemy: IP, sessionId, tresci rozmowy, danych kontaktowych.
+ * Zapisujemy wylacznie zagregowane liczniki.
+ */
+import { json, checkOrigin, applyCors, readJsonBody } from '../http.js';
+import { CTA_TYPES } from '../../agent/ctaEngine.js';
+import { INTENTS } from '../../knowledge/types.js';
+
+const EVENTS = new Set(['cta_impression', 'cta_click']);
+const STAGES = new Set(['eksploracja', 'dopasowanie', 'decyzja', 'kontakt']);
+
+/** Sprowadza zdarzenie do bezpiecznego, zanonimizowanego ksztaltu. */
+export function normalizeEvent(input) {
+  const event = String(input?.event ?? '');
+  if (!EVENTS.has(event)) return null;
+
+  const ctaType = String(input?.ctaType ?? '').toUpperCase();
+  if (!CTA_TYPES.includes(ctaType)) return null;
+
+  const intent = String(input?.sourceIntent ?? '').toUpperCase();
+  const stage = String(input?.conversationStage ?? '');
+
+  // z adresu zostawiamy wylacznie sciezke - bez query stringa i bez fragmentu
+  let page = null;
+  const raw = typeof input?.currentPage === 'string' ? input.currentPage : '';
+  if (raw) {
+    try {
+      page = new URL(raw, 'https://placeholder.local').pathname.slice(0, 120);
+    } catch { page = null; }
+  }
+
+  return {
+    event,
+    ctaType,
+    sourceIntent: INTENTS.includes(intent) ? intent : 'GENERAL',
+    conversationStage: STAGES.has(stage) ? stage : null,
+    currentPage: page,
+  };
+}
+
+/** Agreguje zdarzenie w liczniku (bez zapisu pojedynczych zdarzen). */
+export function aggregate(store, event) {
+  const key = [event.event, event.ctaType, event.sourceIntent, event.conversationStage ?? '-', event.currentPage ?? '-'].join('|');
+  const next = { ...store };
+  next[key] = (next[key] ?? 0) + 1;
+  return next;
+}
+
+export function createAnalyticsHandler({ read = async () => ({}), write = async () => {} } = {}) {
+  return async function analyticsHandler(req, res) {
+    const { ok: originOk, origin } = checkOrigin(req);
+    applyCors(res, originOk ? origin : null);
+
+    if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
+    if (req.method !== 'POST') return json(res, 405, { error: 'Dozwolona jest wylacznie metoda POST.' });
+    if (!originOk) return json(res, 403, { error: 'Niedozwolone zrodlo zadania.' });
+
+    let body;
+    try { body = await readJsonBody(req, { limitBytes: 8 * 1024 }); }
+    catch { return json(res, 400, { error: 'Nieprawidlowe zadanie.' }); }
+
+    const events = Array.isArray(body?.events) ? body.events : [body];
+    const accepted = events.map(normalizeEvent).filter(Boolean).slice(0, 20);
+    if (!accepted.length) return json(res, 202, { accepted: 0 });
+
+    try {
+      let store = await read();
+      for (const event of accepted) store = aggregate(store, event);
+      await write(store);
+    } catch { /* telemetria nigdy nie psuje UX */ }
+
+    return json(res, 202, { accepted: accepted.length });
+  };
+}
+
+export default createAnalyticsHandler;

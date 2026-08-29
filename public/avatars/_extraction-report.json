@@ -1,0 +1,191 @@
+[
+  {
+    "file": "pose-01-r1c1.png",
+    "sheet": "01",
+    "row": 1,
+    "col": 1,
+    "coverage": 0.4592
+  },
+  {
+    "file": "pose-01-r1c2.png",
+    "sheet": "01",
+    "row": 1,
+    "col": 2,
+    "coverage": 0.4741
+  },
+  {
+    "file": "pose-01-r1c3.png",
+    "sheet": "01",
+    "row": 1,
+    "col": 3,
+    "coverage": 0.467
+  },
+  {
+    "file": "pose-01-r2c1.png",
+    "sheet": "01",
+    "row": 2,
+    "col": 1,
+    "coverage": 0.4456
+  },
+  {
+    "file": "pose-01-r2c2.png",
+    "sheet": "01",
+    "row": 2,
+    "col": 2,
+    "coverage": 0.4262
+  },
+  {
+    "file": "pose-01-r2c3.png",
+    "sheet": "01",
+    "row": 2,
+    "col": 3,
+    "coverage": 0.4772
+  },
+  {
+    "file": "pose-01-r3c1.png",
+    "sheet": "01",
+    "row": 3,
+    "col": 1,
+    "coverage": 0.4707
+  },
+  {
+    "file": "pose-01-r3c2.png",
+    "sheet": "01",
+    "row": 3,
+    "col": 2,
+    "coverage": 0.4575
+  },
+  {
+    "file": "pose-01-r3c3.png",
+    "sheet": "01",
+    "row": 3,
+    "col": 3,
+    "coverage": 0.4695
+  },
+  {
+    "file": "pose-02-r1c1.png",
+    "sheet": "02",
+    "row": 1,
+    "col": 1,
+    "coverage": 0.4579
+  },
+  {
+    "file": "pose-02-r1c2.png",
+    "sheet": "02",
+    "row": 1,
+    "col": 2,
+    "coverage": 0.4594
+  },
+  {
+    "file": "pose-02-r1c3.png",
+    "sheet": "02",
+    "row": 1,
+    "col": 3,
+    "coverage": 0.4726
+  },
+  {
+    "file": "pose-02-r2c1.png",
+    "sheet": "02",
+    "row": 2,
+    "col": 1,
+    "coverage": 0.4871
+  },
+  {
+    "file": "pose-02-r2c2.png",
+    "sheet": "02",
+    "row": 2,
+    "col": 2,
+    "coverage": 0.436
+  },
+  {
+    "file": "pose-02-r2c3.png",
+    "sheet": "02",
+    "row": 2,
+    "col": 3,
+    "coverage": 0.475
+  },
+  {
+    "file": "pose-02-r3c1.png",
+    "sheet": "02",
+    "row": 3,
+    "col": 1,
+    "coverage": 0.4537
+  },
+  {
+    "file": "pose-02-r3c2.png",
+    "sheet": "02",
+    "row": 3,
+    "col": 2,
+    "coverage": 0.4534
+  },
+  {
+    "file": "pose-02-r3c3.png",
+    "sheet": "02",
+    "row": 3,
+    "col": 3,
+    "coverage": 0.4611
+  },
+  {
+    "file": "pose-03-r1c1.png",
+    "sheet": "03",
+    "row": 1,
+    "col": 1,
+    "coverage": 0.5336
+  },
+  {
+    "file": "pose-03-r1c2.png",
+    "sheet": "03",
+    "row": 1,
+    "col": 2,
+    "coverage": 0.4613
+  },
+  {
+    "file": "pose-03-r1c3.png",
+    "sheet": "03",
+    "row": 1,
+    "col": 3,
+    "coverage": 0.478
+  },
+  {
+    "file": "pose-03-r2c1.png",
+    "sheet": "03",
+    "row": 2,
+    "col": 1,
+    "coverage": 0.3749
+  },
+  {
+    "file": "pose-03-r2c2.png",
+    "sheet": "03",
+    "row": 2,
+    "col": 2,
+    "coverage": 0.4412
+  },
+  {
+    "file": "pose-03-r2c3.png",
+    "sheet": "03",
+    "row": 2,
+    "col": 3,
+    "coverage": 0.458
+  },
+  {
+    "file": "pose-03-r3c1.png",
+    "sheet": "03",
+    "row": 3,
+    "col": 1,
+    "coverage": 0.46
+  },
+  {
+    "file": "pose-03-r3c2.png",
+    "sheet": "03",
+    "row": 3,
+    "col": 2,
+    "coverage": 0.4551
+  },
+  {
+    "file": "pose-03-r3c3.png",
+    "sheet": "03",
+    "row": 3,
+    "col": 3,
+    "coverage": 0.4884
+  }
+]

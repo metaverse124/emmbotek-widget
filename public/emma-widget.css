@@ -1,0 +1,438 @@
+/*
+ * eMMa AI - style widgetu i animacje awatara Emmbotek.
+ * Branding: baza #133B47 + ciepla zloc. Kontrast tekstu >= 4.5:1.
+ * Wszystkie animacje wylaczaja sie przy prefers-reduced-motion.
+ */
+
+.emma {
+  --emma-base: #133B47;
+  --emma-base-strong: #0D2B34;
+  --emma-accent: #D9A441;
+  --emma-accent-strong: #B5822A;
+  --emma-surface: #FFFFFF;
+  --emma-surface-alt: #F3F6F7;
+  --emma-text: #16242A;
+  --emma-text-soft: #4C5C63;
+  --emma-on-dark: #F4F8F9;
+  --emma-radius: 20px;
+  --emma-shadow: 0 18px 48px rgba(6, 32, 40, .24);
+
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483000;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--emma-text);
+}
+
+.emma *,
+.emma *::before,
+.emma *::after { box-sizing: border-box; }
+
+/* ---------------------------------------------------------------- side tab */
+
+.emma__tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--emma-base);
+  color: var(--emma-on-dark);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--emma-shadow);
+  transition: transform .18s ease, background-color .18s ease;
+}
+
+.emma__tab:hover { background: var(--emma-base-strong); transform: translateY(-2px); }
+.emma__tab:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 3px; }
+.emma[data-open="true"] .emma__tab { transform: translateY(4px) scale(.96); opacity: .92; }
+
+.emma__tab-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--emma-surface-alt);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.emma__tab-label { white-space: nowrap; }
+
+/* ------------------------------------------------------------------- panel */
+
+.emma__panel {
+  position: absolute;
+  right: 0;
+  bottom: 64px;
+  width: 380px;
+  height: 560px;
+  max-height: calc(100vh - 110px);
+  display: flex;
+  flex-direction: column;
+  background: var(--emma-surface);
+  border-radius: var(--emma-radius);
+  box-shadow: var(--emma-shadow);
+  overflow: hidden;
+  animation: emma-panel-in .22s ease-out;
+}
+
+.emma__panel[hidden] { display: none; }
+
+@keyframes emma-panel-in {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ------------------------------------------------------------------ naglowek */
+
+.emma__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--emma-base);
+  color: var(--emma-on-dark);
+}
+
+.emma__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.emma__headtext { flex: 1 1 auto; min-width: 0; }
+.emma__title { margin: 0; font-size: 15px; font-weight: 700; }
+.emma__status { margin: 2px 0 0; font-size: 12px; color: #BFD6DD; }
+
+.emma__icon-btn {
+  width: 34px;
+  height: 34px;
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--emma-on-dark);
+  cursor: pointer;
+  transition: background-color .16s ease;
+}
+.emma__icon-btn:hover { background: rgba(255, 255, 255, .14); }
+.emma__icon-btn:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+.emma__icon-btn svg { width: 100%; height: 100%; display: block; }
+
+/* ---------------------------------------------------------------- rozmowa */
+
+.emma__log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--emma-surface);
+  scroll-behavior: smooth;
+}
+.emma__log:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: -3px; }
+
+.emma__row { display: flex; flex-direction: column; max-width: 86%; }
+.emma__row--user { align-self: flex-end; align-items: flex-end; }
+.emma__row--emma { align-self: flex-start; }
+
+.emma__bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--emma-surface-alt);
+  animation: emma-bubble-in .2s ease-out;
+}
+.emma__row--user .emma__bubble {
+  background: var(--emma-base);
+  color: var(--emma-on-dark);
+  border-bottom-right-radius: 6px;
+}
+.emma__row--emma .emma__bubble { border-bottom-left-radius: 6px; }
+.emma__bubble p { margin: 0 0 6px; }
+.emma__bubble p:last-child { margin-bottom: 0; }
+.emma__list { margin: 4px 0 0; padding-left: 18px; }
+.emma__list li { margin-bottom: 2px; }
+
+@keyframes emma-bubble-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.emma__bubble--typing { display: flex; gap: 4px; padding: 14px; }
+.emma__bubble--typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--emma-text-soft);
+  animation: emma-typing 1.1s infinite ease-in-out;
+}
+.emma__bubble--typing span:nth-child(2) { animation-delay: .16s; }
+.emma__bubble--typing span:nth-child(3) { animation-delay: .32s; }
+
+@keyframes emma-typing {
+  0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+  30%           { opacity: 1;  transform: translateY(-4px); }
+}
+
+/* -------------------------------------------------------------------- CTA */
+
+.emma__ctas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+.emma__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--emma-accent);
+  background: #FFF8EA;
+  color: #4A3306;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  animation: emma-cta-in .34s cubic-bezier(.2, .9, .3, 1.2) backwards;
+  animation-delay: var(--emma-cta-delay, 0ms);
+  transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.emma__cta:hover {
+  background: var(--emma-accent);
+  color: #241800;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(181, 130, 42, .28);
+}
+.emma__cta:focus-visible { outline: 3px solid var(--emma-base); outline-offset: 2px; }
+.emma__cta-icon { font-size: 15px; transition: transform .2s ease; }
+.emma__cta:hover .emma__cta-icon { transform: scale(1.15) rotate(-6deg); }
+
+@keyframes emma-cta-in {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  60%  { transform: translateY(-2px) scale(1.02); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ----------------------------------------------------------------- chipsy */
+
+.emma__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 14px 8px; }
+
+.emma__chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #CFDBE0;
+  background: var(--emma-surface);
+  color: var(--emma-text-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .16s ease, color .16s ease, background-color .16s ease;
+}
+.emma__chip:hover { border-color: var(--emma-base); color: var(--emma-base); background: var(--emma-surface-alt); }
+.emma__chip:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- formularz */
+
+.emma__form { display: flex; gap: 8px; padding: 8px 14px; border-top: 1px solid #E3EAEC; }
+.emma__field { position: relative; flex: 1 1 auto; }
+
+.emma__input {
+  width: 100%;
+  min-height: 42px;
+  max-height: 96px;
+  padding: 11px 52px 11px 14px;
+  border: 1.5px solid #CFDBE0;
+  border-radius: 14px;
+  font: inherit;
+  color: var(--emma-text);
+  resize: none;
+  background: var(--emma-surface);
+}
+.emma__input:focus { outline: none; border-color: var(--emma-base); box-shadow: 0 0 0 3px rgba(19, 59, 71, .14); }
+
+.emma__counter {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 11px;
+  color: #7B8B92;
+}
+.emma__counter[data-warn="true"] { color: #A8321E; font-weight: 700; }
+
+.emma__send {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--emma-base);
+  color: var(--emma-on-dark);
+  cursor: pointer;
+  transition: background-color .16s ease, transform .16s ease;
+}
+.emma__send:hover:not(:disabled) { background: var(--emma-base-strong); transform: translateY(-1px); }
+.emma__send:disabled { opacity: .5; cursor: progress; }
+.emma__send:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+.emma__send svg { width: 100%; height: 100%; display: block; }
+
+/* ------------------------------------------------------------- nota RODO */
+
+.emma__note {
+  margin: 0;
+  padding: 0 14px 12px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--emma-text-soft);
+}
+
+.emma__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--emma-base);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.emma__link:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+
+.emma__sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ================================================================ AWATAR */
+
+.emmbotek { position: relative; }
+.emmbotek--unavailable { display: none; }
+
+/* w kolistych kadrach (naglowek, side tab) maskotka jest przyblizona na twarz */
+.emmbotek--header .emmbotek__frame,
+.emmbotek--tab .emmbotek__frame { width: 122%; height: 122%; }
+
+.emmbotek__stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.emmbotek__frame {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  transform-origin: 50% 88%;
+  will-change: transform;
+}
+
+/* --- warstwa ruchu: jedna animacja na typ emocji (sekcja 16 i 31 briefu) --- */
+
+.emmbotek[data-motion="breathe"] .emmbotek__frame { animation: emmbotek-breathe 4.4s ease-in-out infinite; }
+.emmbotek[data-motion="bob"]     .emmbotek__frame { animation: emmbotek-bob 2.6s ease-in-out infinite; }
+.emmbotek[data-motion="wave"]    .emmbotek__frame { animation: emmbotek-wave 1.1s ease-in-out infinite; }
+.emmbotek[data-motion="ponder"]  .emmbotek__frame { animation: emmbotek-ponder 2.2s ease-in-out infinite; }
+.emmbotek[data-motion="hop"]     .emmbotek__frame { animation: emmbotek-hop .78s cubic-bezier(.3, .9, .4, 1.3) infinite; }
+.emmbotek[data-motion="tilt"]    .emmbotek__frame { animation: emmbotek-tilt 2.8s ease-in-out infinite; }
+.emmbotek[data-motion="lean"]    .emmbotek__frame { animation: emmbotek-lean 3.6s ease-in-out infinite; }
+.emmbotek[data-motion="pop"]     .emmbotek__frame { animation: emmbotek-pop .5s cubic-bezier(.2, .8, .3, 1.5); }
+.emmbotek[data-motion="puff"]    .emmbotek__frame { animation: emmbotek-puff 3s ease-in-out infinite; }
+.emmbotek[data-motion="sway"]    .emmbotek__frame { animation: emmbotek-sway 3.2s ease-in-out infinite; }
+.emmbotek[data-motion="still"]   .emmbotek__frame { animation: none; }
+
+@keyframes emmbotek-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+@keyframes emmbotek-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-4%) rotate(-1.2deg); }
+}
+@keyframes emmbotek-wave {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50%      { transform: rotate(3deg) translateY(-3%); }
+}
+@keyframes emmbotek-ponder {
+  0%, 100% { transform: rotate(-2.5deg) translateX(-1%); }
+  50%      { transform: rotate(1.5deg) translateX(1%); }
+}
+@keyframes emmbotek-hop {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  30%      { transform: translateY(-9%) scaleY(1.04); }
+  70%      { transform: translateY(0) scaleY(.97); }
+}
+@keyframes emmbotek-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  35%      { transform: rotate(-6deg); }
+  65%      { transform: rotate(3deg); }
+}
+@keyframes emmbotek-lean {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50%      { transform: rotate(4deg) translateY(2%); }
+}
+@keyframes emmbotek-pop {
+  0%   { transform: scale(.86); }
+  55%  { transform: scale(1.09); }
+  100% { transform: scale(1); }
+}
+@keyframes emmbotek-puff {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.05) translateY(-2%); }
+}
+@keyframes emmbotek-sway {
+  0%, 100% { transform: translateX(-2%) rotate(-2deg); }
+  50%      { transform: translateX(2%) rotate(2deg); }
+}
+
+/* ------------------------------------------------------------- mobile < 640 */
+
+@media (max-width: 640px) {
+  .emma { right: 12px; bottom: 12px; }
+  .emma__panel {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+  .emma__tab-label { display: none; }
+  .emma__tab { padding: 6px; }
+  .emma__row { max-width: 92%; }
+}
+
+html.emma-locked, html.emma-locked body { overflow: hidden; }
+
+/* ---------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .emma *,
+  .emma *::before,
+  .emma *::after,
+  .emmbotek__frame {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------ high contrast */
+
+@media (forced-colors: active) {
+  .emma__cta, .emma__chip, .emma__bubble { border: 1px solid CanvasText; }
+}

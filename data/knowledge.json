@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "site": "https://emmastudio.pl",
+  "generatedAt": "2026-08-29T19:27:44.401Z",
+  "lastSyncAt": "2026-08-29T19:27:44.401Z",
+  "stats": {
+    "documents": 4,
+    "chunks": 4
+  },
+  "ctaMap": {
+    "OFFER": {
+      "url": "https://emmastudio.pl/oferta/",
+      "title": "Oferta kursow",
+      "sourceType": "COURSE",
+      "anchors": []
+    },
+    "EXAM": {
+      "url": "https://emmastudio.pl/egzaminy/",
+      "title": "Kursy egzaminacyjne",
+      "sourceType": "EXAM",
+      "anchors": []
+    },
+    "CONTACT": {
+      "url": "https://emmastudio.pl/kontakt/",
+      "title": "Kontakt i sekretariat",
+      "sourceType": "CONTACT",
+      "anchors": [
+        {
+          "id": "lekcja-probna",
+          "text": "Bezplatna lekcja probna"
+        }
+      ]
+    }
+  },
+  "documents": [
+    {
+      "id": "67e51dabc8575bbda2371230cb456eed",
+      "sourceUrl": "https://emmastudio.pl/",
+      "sourceTitle": "eMMa - Prywatne Studio Jezykow Obcych w Poznaniu",
+      "sourceType": "LANDING_PAGE",
+      "content": "Prywatne Studio Jezykow Obcych eMMa\nStudio dziala w Poznaniu nieprzerwanie od 1992 roku. Uczymy angielskiego i hiszpanskiego.\nZajecia prowadzimy w kameralnych grupach 4-8 osob oraz indywidualnie. Uczymy dzieci, mlodziez, doroslych i firmy.",
+      "publishedAt": null,
+      "updatedAt": "2026-08-29T19:27:44.401Z",
+      "validFrom": null,
+      "validUntil": null,
+      "indexedAt": "2026-08-29T19:27:44.401Z",
+      "contentHash": "4685b9d4c65bf043a21f9f572500a7c9",
+      "status": "active",
+      "revision": 1,
+      "headings": [
+        "Prywatne Studio Jezykow Obcych eMMa"
+      ],
+      "anchors": [],
+      "chunks": [
+        {
+          "id": "67e51dabc8575bbda2371230cb456eed#0",
+          "text": "Prywatne Studio Jezykow Obcych eMMa\nStudio dziala w Poznaniu nieprzerwanie od 1992 roku. Uczymy angielskiego i hiszpanskiego.\nZajecia prowadzimy w kameralnych grupach 4-8 osob oraz indywidualnie. Uczymy dzieci, mlodziez, doroslych i firmy.",
+          "anchor": null,
+          "heading": "Prywatne Studio Jezykow Obcych eMMa"
+        }
+      ]
+    },
+    {
+      "id": "3562ff898f3ce22cf38a0e3f2b5ceb35",
+      "sourceUrl": "https://emmastudio.pl/oferta/",
+      "sourceTitle": "Oferta kursow",
+      "sourceType": "COURSE",
+      "content": "Oferta kursow jezykowych\nKursy grupowe i indywidualne z angielskiego i hiszpanskiego dla dzieci, mlodziezy i doroslych.\nW ofercie znajduje sie takze angielski biznesowy oraz szkolenia dla firm.",
+      "publishedAt": null,
+      "updatedAt": "2026-08-29T19:27:44.401Z",
+      "validFrom": null,
+      "validUntil": null,
+      "indexedAt": "2026-08-29T19:27:44.401Z",
+      "contentHash": "fbcbb4e80c2f50bd718ed8246170015b",
+      "status": "active",
+      "revision": 1,
+      "headings": [
+        "Oferta kursow jezykowych"
+      ],
+      "anchors": [],
+      "chunks": [
+        {
+          "id": "3562ff898f3ce22cf38a0e3f2b5ceb35#0",
+          "text": "Oferta kursow jezykowych\nKursy grupowe i indywidualne z angielskiego i hiszpanskiego dla dzieci, mlodziezy i doroslych.\nW ofercie znajduje sie takze angielski biznesowy oraz szkolenia dla firm.",
+          "anchor": null,
+          "heading": "Oferta kursow jezykowych"
+        }
+      ]
+    },
+    {
+      "id": "e5140b05e550536335421a7fb8af2308",
+      "sourceUrl": "https://emmastudio.pl/egzaminy/",
+      "sourceTitle": "Kursy egzaminacyjne",
+      "sourceType": "EXAM",
+      "content": "Przygotowanie do egzaminow\nPrzygotowujemy do egzaminow FCE, CAE, IELTS i TOEFL.",
+      "publishedAt": null,
+      "updatedAt": "2026-08-29T19:27:44.401Z",
+      "validFrom": null,
+      "validUntil": null,
+      "indexedAt": "2026-08-29T19:27:44.401Z",
+      "contentHash": "528cf1a4b5d19a7279f7eb707ce59c48",
+      "status": "active",
+      "revision": 1,
+      "headings": [
+        "Przygotowanie do egzaminow"
+      ],
+      "anchors": [],
+      "chunks": [
+        {
+          "id": "e5140b05e550536335421a7fb8af2308#0",
+          "text": "Przygotowanie do egzaminow\nPrzygotowujemy do egzaminow FCE, CAE, IELTS i TOEFL.",
+          "anchor": null,
+          "heading": "Przygotowanie do egzaminow"
+        }
+      ]
+    },
+    {
+      "id": "bdc0ae8265452c0c98ffa75feb75aacc",
+      "sourceUrl": "https://emmastudio.pl/kontakt/",
+      "sourceTitle": "Kontakt i sekretariat",
+      "sourceType": "CONTACT",
+      "content": "Kontakt\nSekretariat eMMy w Poznaniu odpowiada na pytania o zapisy, terminy i lekcje probne.\nBezplatna lekcja probna\nBezplatna lekcje probna umawia sekretariat szkoly.",
+      "publishedAt": null,
+      "updatedAt": "2026-08-29T19:27:44.401Z",
+      "validFrom": null,
+      "validUntil": null,
+      "indexedAt": "2026-08-29T19:27:44.401Z",
+      "contentHash": "887208db55599b1e4ffce77b5ef0c632",
+      "status": "active",
+      "revision": 1,
+      "headings": [
+        "Kontakt",
+        "Bezplatna lekcja probna"
+      ],
+      "anchors": [
+        {
+          "id": "lekcja-probna",
+          "text": "Bezplatna lekcja probna"
+        }
+      ],
+      "chunks": [
+        {
+          "id": "bdc0ae8265452c0c98ffa75feb75aacc#0",
+          "text": "Kontakt\nSekretariat eMMy w Poznaniu odpowiada na pytania o zapisy, terminy i lekcje probne.\nBezplatna lekcja probna\nBezplatna lekcje probna umawia sekretariat szkoly.",
+          "anchor": "lekcja-probna",
+          "heading": "Bezplatna lekcja probna"
+        }
+      ]
+    }
+  ],
+  "seed": true,
+  "note": "Baza startowa z faktow bazowych. Uruchom `npm run crawl`, aby zaindeksowac aktualna strone."
+}

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eMMa AI — demo asystentki i awatara Emmbotek</title>
+<meta name="description" content="Demo wdrozeniowe eMMa AI: widget czatu, Living Knowledge Base, Contextual CTA Engine i animowany awatar Emmbotek w 12 emocjach.">
+<link rel="icon" href="/avatars/small/pose-03-r3c2.png" type="image/png">
+<link rel="stylesheet" href="/emma-widget.css">
+<style>
+  :root {
+    --base: #133B47;
+    --base-soft: #1B4E5E;
+    --accent: #D9A441;
+    --ink: #16242A;
+    --muted: #4C5C63;
+    --paper: #F7F9FA;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  header.hero {
+    background: linear-gradient(160deg, var(--base) 0%, var(--base-soft) 100%);
+    color: #F4F8F9;
+    padding: 56px 0 64px;
+  }
+  .hero h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.02em; }
+  .hero p { margin: 0 0 24px; max-width: 62ch; color: #C9DDE4; }
+  .hero-grid { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
+  .hero-mascot { width: 210px; height: 210px; flex: 0 0 auto; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,.12); color: #EAF3F6;
+  }
+  section { padding: 48px 0; }
+  h2 { font-size: 22px; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 24px; max-width: 70ch; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: #fff; border: 1px solid #E3EAEC; border-radius: 16px; padding: 18px 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 15px; }
+  .card p { margin: 0; font-size: 14px; color: var(--muted); }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 14px; }
+  .tile {
+    background: #fff; border: 1px solid #E3EAEC; border-radius: 16px; padding: 10px;
+    text-align: center; cursor: pointer; font: inherit; color: inherit;
+  }
+  .tile:hover { border-color: var(--base); box-shadow: 0 6px 18px rgba(19,59,71,.12); }
+  .tile:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .tile img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
+  .tile b { display: block; font-size: 12px; letter-spacing: .04em; }
+  .tile span { font-size: 11px; color: var(--muted); }
+  .stage {
+    display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
+    background: #fff; border: 1px solid #E3EAEC; border-radius: 20px; padding: 20px;
+  }
+  .stage-avatar { width: 190px; height: 190px; flex: 0 0 auto; }
+  .stage-info { flex: 1 1 260px; }
+  .stage-info code { background: #EEF3F5; padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+  footer { background: var(--base); color: #C9DDE4; padding: 28px 0; font-size: 13px; }
+  footer a { color: #F0C36B; }
+  @media (max-width: 720px) { .hero-grid { grid-template-columns: 1fr; } .hero-mascot { width: 160px; height: 160px; } }
+</style>
+</head>
+<body data-emma-page-type="LANDING_PAGE">
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>eMMa AI</h1>
+      <p>
+        Cyfrowa doradczyni Prywatnego Studia Jezykow Obcych eMMa: zywa baza wiedzy o stronie,
+        kontekstowe CTA i animowany awatar <strong>Emmbotek</strong> w dwunastu emocjach.
+        Kliknij zakladke <em>Zapytaj eMMe</em> w prawym dolnym rogu.
+      </p>
+      <div class="badges">
+        <span class="badge">Living Knowledge Base</span>
+        <span class="badge">Hybrid Retrieval</span>
+        <span class="badge">Contextual CTA Engine</span>
+        <span class="badge">12 emocji awatara</span>
+        <span class="badge">RODO + a11y</span>
+      </div>
+    </div>
+    <div class="hero-mascot emmbotek" id="hero-avatar"></div>
+  </div>
+</header>
+
+<main>
+  <section class="wrap">
+    <h2>Awatar Emmbotek — 12 emocji</h2>
+    <p class="lead">
+      27 poz maskotki zostalo wyizolowanych z trzech arkuszy (usuniete tlo szachownicy, przyciecie do sylwetki,
+      wersja 512 px i lekka 192 px) i zmapowanych na tagi emocji z briefu. Kliknij kafelek, aby odtworzyc animacje.
+    </p>
+    <div class="stage">
+      <div class="stage-avatar emmbotek" id="stage-avatar"></div>
+      <div class="stage-info">
+        <p><strong id="stage-name">NEUTRAL</strong> — <span id="stage-label">spokojna</span></p>
+        <p class="lead" id="stage-frames"></p>
+        <p class="lead">
+          Model zaczyna kazda odpowiedz tagiem, np. <code>[EXCITED]</code>. Widget usuwa tag z tekstu,
+          odtwarza animacje i wraca do <code>NEUTRAL</code>. Przy <code>prefers-reduced-motion</code> zostaje statyczna poza.
+        </p>
+      </div>
+    </div>
+    <p></p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section class="wrap">
+    <h2>Co dziala pod spodem</h2>
+    <p class="lead">Architektura zgodna z sekcja 44 briefu — od sitemap po CTA.</p>
+    <div class="cards">
+      <div class="card"><h3>Crawler + ekstrakcja</h3><p>sitemap.xml, usuwanie menu i stopek, klasyfikacja typu dokumentu, chunking, content hash i wykrywanie zmian.</p></div>
+      <div class="card"><h3>Retrieval</h3><p>keyword + metadane + ranking aktualnosci i hierarchia zrodel; gotowe miejsce na embeddings.</p></div>
+      <div class="card"><h3>Contextual CTA</h3><p>0–2 przyciski, dynamiczna mapa intent → aktualny URL, kotwice do sekcji, anonimowa analityka klikniec.</p></div>
+      <div class="card"><h3>Bezpieczenstwo</h3><p>Klucz Gemini tylko na serwerze, rate limit, allowlist Origin, limit 600 znakow, ochrona przed prompt injection.</p></div>
+      <div class="card"><h3>Pamiec i RODO</h3><p>localStorage z informacja o zapisie, przycisk „Wyczysc rozmowe”, brak zbierania danych od dzieci.</p></div>
+      <div class="card"><h3>Dostepnosc</h3><p>role="dialog", aria-live, focus trap na mobile, Esc, kontrast ≥ 4.5:1, pelna obsluga klawiatury.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    eMMa AI — demo wdrozeniowe. Uruchom lokalnie: <code>npm run dev</code>.
+    Bez <code>GEMINI_API_KEY</code> dziala tryb demo z lokalna atrapa modelu.
+  </div>
+</footer>
+
+<script src="/emmbotek-avatar.js"></script>
+<script src="/emma-widget.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    EmmaWidget.init({ assetsBase: '/', privacyUrl: null });
+
+    var hero = new EmmbotekAvatar({ element: document.getElementById('hero-avatar'), basePath: '/avatars/', variant: '' });
+    hero.load().then(function () { hero.set('GREETING'); });
+
+    var stage = new EmmbotekAvatar({ element: document.getElementById('stage-avatar'), basePath: '/avatars/', variant: '' });
+
+    stage.load().then(function (manifest) {
+      if (!manifest) return;
+      var gallery = document.getElementById('gallery');
+      var name = document.getElementById('stage-name');
+      var label = document.getElementById('stage-label');
+      var frames = document.getElementById('stage-frames');
+
+      function show(emotion) {
+        var definition = manifest.emotions[emotion];
+        stage.set(emotion, { hold: 0 });
+        name.textContent = emotion;
+        label.textContent = definition.label;
+        frames.textContent = 'Klatki: ' + definition.frames.length + ' • ruch: ' + definition.motion + ' • ' + definition.fps + ' fps';
+      }
+
+      Object.keys(manifest.emotions).forEach(function (emotion) {
+        var definition = manifest.emotions[emotion];
+        var tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'tile';
+        tile.innerHTML = '<img src="/avatars/small/' + definition.frames[0] + '" alt="Emmbotek: ' + definition.label + '">'
+          + '<b>' + emotion + '</b><span>' + definition.label + '</span>';
+        tile.addEventListener('click', function () { show(emotion); });
+        gallery.appendChild(tile);
+      });
+
+      show('NEUTRAL');
+    });
+  });
+</script>
+</body>
+</html>

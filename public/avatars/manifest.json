@@ -1,0 +1,268 @@
+{
+  "name": "Emmbotek",
+  "description": "Animowany awatar asystentki eMMa AI - 27 poz wyizolowanych z arkuszy maskotki, zmapowanych na 12 emocji z briefu.",
+  "canvas": {
+    "width": 512,
+    "height": 512
+  },
+  "basePath": "avatars/",
+  "defaultEmotion": "NEUTRAL",
+  "fallbackEmotion": "NEUTRAL",
+  "emotions": {
+    "NEUTRAL": {
+      "label": "spokojna",
+      "frames": [
+        "pose-03-r3c2.png",
+        "pose-02-r3c2.png"
+      ],
+      "fps": 0.5,
+      "motion": "breathe",
+      "hold": 0
+    },
+    "GREETING": {
+      "label": "powitanie",
+      "frames": [
+        "pose-03-r3c3.png",
+        "pose-02-r2c3.png"
+      ],
+      "fps": 2.2,
+      "motion": "wave",
+      "hold": 2600
+    },
+    "SMILE": {
+      "label": "usmiech",
+      "frames": [
+        "pose-01-r1c3.png",
+        "pose-02-r1c3.png",
+        "pose-03-r3c2.png"
+      ],
+      "fps": 1.1,
+      "motion": "bob",
+      "hold": 2200
+    },
+    "THINKING": {
+      "label": "namysl",
+      "frames": [
+        "pose-01-r2c1.png",
+        "pose-02-r3c3.png",
+        "pose-01-r2c2.png"
+      ],
+      "fps": 1.6,
+      "motion": "ponder",
+      "hold": 0
+    },
+    "EXCITED": {
+      "label": "entuzjazm",
+      "frames": [
+        "pose-03-r1c1.png",
+        "pose-01-r3c3.png"
+      ],
+      "fps": 3,
+      "motion": "hop",
+      "hold": 2400
+    },
+    "FUNNY": {
+      "label": "zart",
+      "frames": [
+        "pose-01-r2c3.png",
+        "pose-03-r1c3.png"
+      ],
+      "fps": 1.8,
+      "motion": "tilt",
+      "hold": 2400
+    },
+    "EMPATHY": {
+      "label": "empatia",
+      "frames": [
+        "pose-02-r1c1.png",
+        "pose-02-r1c2.png"
+      ],
+      "fps": 0.8,
+      "motion": "lean",
+      "hold": 3000
+    },
+    "CURIOUS": {
+      "label": "ciekawosc",
+      "frames": [
+        "pose-01-r2c2.png",
+        "pose-02-r2c1.png"
+      ],
+      "fps": 1.2,
+      "motion": "tilt",
+      "hold": 2600
+    },
+    "SURPRISED": {
+      "label": "zaskoczenie",
+      "frames": [
+        "pose-01-r1c2.png",
+        "pose-03-r2c1.png"
+      ],
+      "fps": 2.6,
+      "motion": "pop",
+      "hold": 2000
+    },
+    "PROUD": {
+      "label": "duma",
+      "frames": [
+        "pose-03-r1c2.png",
+        "pose-02-r3c2.png"
+      ],
+      "fps": 1,
+      "motion": "puff",
+      "hold": 2400
+    },
+    "FOCUS": {
+      "label": "skupienie",
+      "frames": [
+        "pose-02-r2c2.png",
+        "pose-03-r2c2.png",
+        "pose-01-r1c1.png"
+      ],
+      "fps": 0.9,
+      "motion": "still",
+      "hold": 3000
+    },
+    "SHY": {
+      "label": "niesmialosc",
+      "frames": [
+        "pose-02-r3c1.png",
+        "pose-03-r3c1.png"
+      ],
+      "fps": 0.9,
+      "motion": "sway",
+      "hold": 2600
+    }
+  },
+  "extraStates": {
+    "SLEEPY": {
+      "label": "drzemka (bezczynnosc)",
+      "frames": [
+        "pose-03-r2c3.png",
+        "pose-01-r3c2.png"
+      ],
+      "fps": 0.7,
+      "motion": "breathe",
+      "hold": 0
+    },
+    "SAD": {
+      "label": "smutek (blad / brak wiedzy)",
+      "frames": [
+        "pose-01-r3c1.png",
+        "pose-02-r1c2.png"
+      ],
+      "fps": 0.8,
+      "motion": "lean",
+      "hold": 2800
+    }
+  },
+  "poses": [
+    {
+      "file": "pose-01-r1c1.png",
+      "opis": "zmarszczone brwi, lapka przy pysku - sceptycyzm"
+    },
+    {
+      "file": "pose-01-r1c2.png",
+      "opis": "lapki przy policzkach, otwarty pysk - zaskoczenie"
+    },
+    {
+      "file": "pose-01-r1c3.png",
+      "opis": "przymkniete oczy, lagodny usmiech"
+    },
+    {
+      "file": "pose-01-r2c1.png",
+      "opis": "lapka przy pysku, wzrok w gore - namysl"
+    },
+    {
+      "file": "pose-01-r2c2.png",
+      "opis": "spojrzenie w bok, uchylony pysk - ciekawosc"
+    },
+    {
+      "file": "pose-01-r2c3.png",
+      "opis": "przymruzone oko, uniesiona lapka - przekora"
+    },
+    {
+      "file": "pose-01-r3c1.png",
+      "opis": "lzy, lapki przy twarzy - smutek"
+    },
+    {
+      "file": "pose-01-r3c2.png",
+      "opis": "senne, przymkniete powieki"
+    },
+    {
+      "file": "pose-01-r3c3.png",
+      "opis": "smiech z zamknietymi oczami, iskra"
+    },
+    {
+      "file": "pose-02-r1c1.png",
+      "opis": "zaniepokojenie, zlaczone lapki"
+    },
+    {
+      "file": "pose-02-r1c2.png",
+      "opis": "posmutniale brwi, zlaczone lapki"
+    },
+    {
+      "file": "pose-02-r1c3.png",
+      "opis": "zamkniete oczy, szeroki usmiech"
+    },
+    {
+      "file": "pose-02-r2c1.png",
+      "opis": "wyciagnieta lapka, pytajacy wyraz"
+    },
+    {
+      "file": "pose-02-r2c2.png",
+      "opis": "zdecydowane, zmarszczone brwi - skupienie"
+    },
+    {
+      "file": "pose-02-r2c3.png",
+      "opis": "smiech i machanie lapka - powitanie"
+    },
+    {
+      "file": "pose-02-r3c1.png",
+      "opis": "rumience na policzkach - niesmialosc"
+    },
+    {
+      "file": "pose-02-r3c2.png",
+      "opis": "spokojny, zadowolony usmiech"
+    },
+    {
+      "file": "pose-02-r3c3.png",
+      "opis": "lapka przy piersi, wyraz zastanowienia"
+    },
+    {
+      "file": "pose-03-r1c1.png",
+      "opis": "radosny smiech z uniesionymi lapkami"
+    },
+    {
+      "file": "pose-03-r1c2.png",
+      "opis": "lapka na piersi, mila mina - duma"
+    },
+    {
+      "file": "pose-03-r1c3.png",
+      "opis": "mrugniecie okiem, usmiech"
+    },
+    {
+      "file": "pose-03-r2c1.png",
+      "opis": "lapki uniesione, szeroko otwarte oczy"
+    },
+    {
+      "file": "pose-03-r2c2.png",
+      "opis": "surowe spojrzenie - koncentracja"
+    },
+    {
+      "file": "pose-03-r2c3.png",
+      "opis": "ziewanie, lapka przy pysku"
+    },
+    {
+      "file": "pose-03-r3c1.png",
+      "opis": "przymkniete oczy, lagodny spokoj"
+    },
+    {
+      "file": "pose-03-r3c2.png",
+      "opis": "delikatny usmiech - stan bazowy"
+    },
+    {
+      "file": "pose-03-r3c3.png",
+      "opis": "machanie lapka, iskra - powitanie"
+    }
+  ]
+}
