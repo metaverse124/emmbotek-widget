@@ -19,10 +19,10 @@ identyfikatory niewidoczne dla użytkownika.
 ## Uruchamianie
 
 ```bash
-npm test          # 107 testów, node:test, zero zależności
+npm test          # 113 testów, node:test, zero zależności
 npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa atrapa modelu
 npm run crawl     # indeksowanie strony z sitemap.xml
-npm run avatars   # ponowne wycięcie poz maskotki z arkuszy w assets/source/
+npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/source/
 ```
 
 ## Mapa kodu
@@ -36,7 +36,7 @@ npm run avatars   # ponowne wycięcie poz maskotki z arkuszy w assets/source/
 | Model | `src/gemini/client.js` |
 | Serwer | `src/server/` + `api/` (funkcje serverless) |
 | Frontend | `public/emma-widget.{js,css}`, `public/emmbotek-avatar.js` |
-| Awatar | `public/avatars/` — 24 pozy + `manifest.json` |
+| Awatar | `public/avatars/` — 40 poz + `manifest.json` |
 
 ## Zasady, które łatwo złamać
 
@@ -48,8 +48,10 @@ npm run avatars   # ponowne wycięcie poz maskotki z arkuszy w assets/source/
 - **Niepełny crawl nie archiwizuje stron**, których nie zdążył odwiedzić.
 - **Klucz Gemini nigdy nie trafia do przeglądarki.**
 - **Teksty widoczne dla użytkownika piszemy z polskimi znakami.** Komentarze w kodzie są ASCII.
-- **Awatary ze znakiem wodnym modelu** (kafelki `r3c3` arkuszy) są trwale wykluczone
-  w `scripts/extract_avatars.py` — nie przywracać.
+- **Awatary ze znakiem wodnym modelu** (kafelki `r3c3` wszystkich pięciu arkuszy) są
+  trwale wykluczone w `scripts/extract_avatars.py` — nie przywracać.
+- **Adresy porównujemy po normalizacji** (`normalizeUrl` w `src/knowledge/store.js`).
+  `/oferta` i `/oferta/` to jedna podstrona — inaczej crawler archiwizuje żywe strony.
 
 ## Stan i luki
 
@@ -58,7 +60,10 @@ Działa i jest przetestowane: crawler, retrieval, agent, CTA Engine, bezpieczeń
 Do zrobienia przed produkcją:
 
 1. **Emmbotek nigdy nie rozmawiał z prawdziwym Gemini** — cała ścieżka modelu sprawdzona atrapą.
-2. **Brak realnej wiedzy** — `data/knowledge.json` to baza zalążkowa; crawl wymaga dostępu do emmastudio.pl.
+2. **Brak realnej wiedzy — i crawler sam jej nie zdobędzie.** Pierwszy przebieg po
+   prawdziwej stronie (2026-08-30) zwrócił 39 niepowodzeń na 39 adresów: emmastudio.pl
+   to SPA, w HTML jest sam szkielet z meta. `data/knowledge.json` zostaje bazą zalążkową
+   do czasu decyzji o źródle treści — opcje w `docs/zrodlo-wiedzy.md`.
 3. **Brak trwałego magazynu** — pliki JSON nie przetrwają na serverless; blokuje cron.
 4. **Brak CI.**
 5. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).

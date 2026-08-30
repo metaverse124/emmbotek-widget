@@ -57,13 +57,13 @@ EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──
 | Serwer | `src/server/{http,rateLimit,validate}.js`, `src/server/handlers/{chat,sync,analytics}.js` |
 | Endpointy | `api/{chat,sync,analytics}.js` (Vercel) |
 | Frontend | `public/{emma-widget.js,emma-widget.css,emmbotek-avatar.js,index.html}` |
-| Awatar | `public/avatars/` (24 pozy + `manifest.json`) |
+| Awatar | `public/avatars/` (40 poz + `manifest.json`) |
 
 ---
 
 ## Awatar Emmbotek (maskotka)
 
-24 pozy maskotki zostały wyizolowane z trzech arkuszy 3×3 skryptem
+40 poz maskotki zostało wyizolowanych z pięciu arkuszy 3×3 skryptem
 `scripts/extract_avatars.py`:
 
 1. wykrycie czarnych linii siatki → podział na 9 komórek,
@@ -73,8 +73,14 @@ EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──
 5. przycięcie do sylwetki i wyśrodkowanie na kwadracie.
 
 Prawy dolny kafelek każdego arkusza (`r3c3`) nosi widoczny znak wodny modelu generującego —
-biały błysk na brzuchu maskotki. Te trzy pozy są trwale wykluczone w skrypcie (`WATERMARKED`),
+biały błysk na brzuchu maskotki. Te pięć poz jest trwale wykluczonych w skrypcie (`WATERMARKED`),
 więc nie wrócą przy ponownym uruchomieniu `npm run avatars`.
+
+Arkusze 04 i 05 przyszły od klienta wyłącznie jako JPEG 384×512 — mniejsze i bledsze barwnie
+od pozostałych. Skrypt wyrównuje im średnią i odchylenie kanałów RGB do arkuszy 01–03
+(`COLOR_MATCH`), licząc statystyki tylko na pikselach postaci, żeby nie ruszyć szachownicy,
+po której idzie wycinanie tła. Bez tego kroku maskotka z tych arkuszy wygląda jak inna,
+wyblakła zabawka obok reszty.
 
 Wynik: `public/avatars/pose-*.png` (512 px) oraz `public/avatars/small/` (192 px, ~9 kB/klatkę —
 to właśnie tę wersję ładuje widget).

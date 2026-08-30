@@ -9,23 +9,26 @@ const DIR = path.resolve('public/avatars');
 const manifest = JSON.parse(await readFile(path.join(DIR, 'manifest.json'), 'utf8'));
 const pliki = (await readdir(DIR)).filter((name) => name.startsWith('pose-') && name.endsWith('.png'));
 
-test('wyizolowano 24 pozy: po 8 z kazdego arkusza 3x3', () => {
+const ARKUSZE = ['01', '02', '03', '04', '05'];
+const ZE_ZNAKIEM_WODNYM = ARKUSZE.map((sheet) => `pose-${sheet}-r3c3.png`);
+
+test('wyizolowano 40 poz: po 8 z kazdego z pieciu arkuszy 3x3', () => {
   // Kafelek r3c3 kazdego arkusza nosi widoczny znak wodny modelu i jest pomijany.
-  assert.equal(pliki.length, 24);
-  for (const sheet of ['01', '02', '03']) {
+  assert.equal(pliki.length, 40);
+  for (const sheet of ARKUSZE) {
     assert.equal(pliki.filter((name) => name.startsWith(`pose-${sheet}-`)).length, 8);
   }
 });
 
 test('zadna poza ze znakiem wodnym nie zostala opublikowana', () => {
-  for (const watermarked of ['pose-01-r3c3.png', 'pose-02-r3c3.png', 'pose-03-r3c3.png']) {
+  for (const watermarked of ZE_ZNAKIEM_WODNYM) {
     assert.ok(!pliki.includes(watermarked), `${watermarked} nie moze byc w repozytorium`);
   }
   const uzyte = new Set();
   for (const grupa of [manifest.emotions, manifest.extraStates]) {
     for (const definition of Object.values(grupa)) definition.frames.forEach((file) => uzyte.add(file));
   }
-  for (const watermarked of ['pose-01-r3c3.png', 'pose-02-r3c3.png', 'pose-03-r3c3.png']) {
+  for (const watermarked of ZE_ZNAKIEM_WODNYM) {
     assert.ok(!uzyte.has(watermarked), `manifest nie moze odwolywac sie do ${watermarked}`);
   }
 });
@@ -68,7 +71,7 @@ test('kazda opublikowana poza jest wykorzystana', () => {
 
 test('wersja dla widgetu jest lekka (< 25 kB na klatke)', async () => {
   const male = (await readdir(path.join(DIR, 'small'))).filter((name) => name.endsWith('.png'));
-  assert.equal(male.length, 24);
+  assert.equal(male.length, 40);
   for (const file of male) {
     const info = await stat(path.join(DIR, 'small', file));
     assert.ok(info.size < 25 * 1024, `${file} wazy ${Math.round(info.size / 1024)} kB`);

@@ -1,6 +1,6 @@
 {
   "name": "Emmbotek",
-  "description": "Animowany awatar Emmbotka, asystenta eMMa Studio - 24 pozy wyizolowane z arkuszy maskotki, zmapowane na 12 emocji z briefu.",
+  "description": "Animowany awatar Emmbotka, asystenta eMMa Studio - 40 poz wyizolowanych z pieciu arkuszy maskotki, zmapowanych na 12 emocji z briefu.",
   "canvas": {
     "width": 512,
     "height": 512
@@ -13,7 +13,8 @@
       "label": "spokojna",
       "frames": [
         "pose-03-r3c2.png",
-        "pose-02-r3c2.png"
+        "pose-02-r3c2.png",
+        "pose-04-r1c3.png"
       ],
       "fps": 0.5,
       "motion": "breathe",
@@ -22,6 +23,7 @@
     "GREETING": {
       "label": "powitanie",
       "frames": [
+        "pose-04-r2c1.png",
         "pose-02-r2c3.png",
         "pose-02-r1c3.png"
       ],
@@ -34,7 +36,8 @@
       "frames": [
         "pose-01-r1c3.png",
         "pose-02-r1c3.png",
-        "pose-03-r3c2.png"
+        "pose-03-r3c2.png",
+        "pose-04-r1c3.png"
       ],
       "fps": 1.1,
       "motion": "bob",
@@ -43,6 +46,7 @@
     "THINKING": {
       "label": "namysł",
       "frames": [
+        "pose-05-r2c1.png",
         "pose-01-r2c1.png",
         "pose-01-r2c2.png"
       ],
@@ -53,6 +57,9 @@
     "EXCITED": {
       "label": "entuzjazm",
       "frames": [
+        "pose-04-r1c2.png",
+        "pose-04-r2c3.png",
+        "pose-04-r2c2.png",
         "pose-03-r1c1.png",
         "pose-02-r2c3.png"
       ],
@@ -63,8 +70,11 @@
     "FUNNY": {
       "label": "żart",
       "frames": [
+        "pose-05-r2c2.png",
+        "pose-04-r3c1.png",
         "pose-01-r2c3.png",
-        "pose-03-r1c3.png"
+        "pose-03-r1c3.png",
+        "pose-04-r1c1.png"
       ],
       "fps": 1.8,
       "motion": "tilt",
@@ -93,6 +103,8 @@
     "SURPRISED": {
       "label": "zaskoczenie",
       "frames": [
+        "pose-05-r2c3.png",
+        "pose-05-r3c2.png",
         "pose-01-r1c2.png",
         "pose-03-r2c1.png"
       ],
@@ -103,6 +115,7 @@
     "PROUD": {
       "label": "duma",
       "frames": [
+        "pose-05-r1c3.png",
         "pose-03-r1c2.png",
         "pose-02-r3c2.png"
       ],
@@ -124,6 +137,8 @@
     "SHY": {
       "label": "nieśmiałość",
       "frames": [
+        "pose-05-r1c2.png",
+        "pose-04-r3c2.png",
         "pose-02-r3c1.png",
         "pose-03-r3c1.png"
       ],
@@ -136,6 +151,7 @@
     "SLEEPY": {
       "label": "drzemka (bezczynność)",
       "frames": [
+        "pose-05-r3c1.png",
         "pose-03-r2c3.png",
         "pose-01-r3c2.png"
       ],
@@ -146,6 +162,7 @@
     "SAD": {
       "label": "smutek (błąd / brak wiedzy)",
       "frames": [
+        "pose-05-r1c1.png",
         "pose-01-r3c1.png",
         "pose-02-r1c2.png"
       ],
@@ -250,6 +267,70 @@
     {
       "file": "pose-03-r3c2.png",
       "opis": "delikatny usmiech - stan bazowy"
+    },
+    {
+      "file": "pose-04-r1c1.png",
+      "opis": "smiech z zamknietymi oczami, lapki uniesione"
+    },
+    {
+      "file": "pose-04-r1c2.png",
+      "opis": "gwiazdki w oczach, szeroko otwarty pysk - zachwyt"
+    },
+    {
+      "file": "pose-04-r1c3.png",
+      "opis": "lagodny zamkniety usmiech, lapki zlozone - spokoj"
+    },
+    {
+      "file": "pose-04-r2c1.png",
+      "opis": "usmiech z otwartym pyskiem, jedna lapka uniesiona - powitanie"
+    },
+    {
+      "file": "pose-04-r2c2.png",
+      "opis": "postac w ruchu, lapki na boki - podskok"
+    },
+    {
+      "file": "pose-04-r2c3.png",
+      "opis": "gwiazdki w oczach, obie lapki w gorze - entuzjazm"
+    },
+    {
+      "file": "pose-04-r3c1.png",
+      "opis": "glosny smiech, zmruzone oczy - rozbawienie"
+    },
+    {
+      "file": "pose-04-r3c2.png",
+      "opis": "smiech zza lapek przy pysku - niesmialy chichot"
+    },
+    {
+      "file": "pose-05-r1c1.png",
+      "opis": "zmarszczone brwi, nadasany pysk - dasy"
+    },
+    {
+      "file": "pose-05-r1c2.png",
+      "opis": "czerwone policzki, lapka zaslania pysk - zawstydzenie"
+    },
+    {
+      "file": "pose-05-r1c3.png",
+      "opis": "lekko zarozumialy usmiech, lapki zlozone - duma"
+    },
+    {
+      "file": "pose-05-r2c1.png",
+      "opis": "zmarszczone brwi, wzrok w bok, lapka przy pysku - powatpiewanie"
+    },
+    {
+      "file": "pose-05-r2c2.png",
+      "opis": "jedno oko przymkniete, wzrok w bok - sceptycyzm"
+    },
+    {
+      "file": "pose-05-r2c3.png",
+      "opis": "szeroko otwarte oczy, pysk w litere O - zaskoczenie"
+    },
+    {
+      "file": "pose-05-r3c1.png",
+      "opis": "zamkniete oczy, przechylona glowa, lapka przy pysku - sennosc"
+    },
+    {
+      "file": "pose-05-r3c2.png",
+      "opis": "uniesione brwi, szeroko otwarty pysk, lapki w gorze - poploch"
     }
   ],
   "note": "Kafelki r3c3 z kazdego arkusza pominieto - nosza widoczny znak wodny modelu generujacego. Skrypt scripts/extract_avatars.py wyklucza je trwale."

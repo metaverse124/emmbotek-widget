@@ -30,7 +30,15 @@ SMALL_OUT = OUT / "small"
 
 # Prawy dolny kafelek kazdego arkusza nosi widoczny znak wodny modelu generujacego
 # (bialy, czteroramienny blysk na brzuchu maskotki). Takich poz nie publikujemy.
-WATERMARKED = {('01', 3, 3), ('02', 3, 3), ('03', 3, 3)}
+WATERMARKED = {('01', 3, 3), ('02', 3, 3), ('03', 3, 3), ('04', 3, 3), ('05', 3, 3)}
+
+# Arkusze 04 i 05 przyszly od klienta tylko jako JPEG 384x512 - mniejsze i bledsze
+# barwnie od pozostalych (kompresja zjada nasycenie i kontrast). Bez wyrownania
+# maskotka z tych arkuszy wyglada jak inna, wyblakla pluszowa zabawka obok reszty.
+# Wyrownujemy srednia i odchylenie kanalow do arkuszy wzorcowych - tylko na pikselach
+# postaci, zeby nie ruszyc szachownicy, po ktorej idzie wycinanie tla.
+COLOR_MATCH = {'04', '05'}
+COLOR_REFERENCE = ('01', '02', '03')
 
 CANVAS = 512          # docelowy bok kwadratu (wersja pelna)
 SMALL = 192           # wersja dla widgetu (lekka, kwantyzowana)
@@ -54,7 +62,12 @@ def find_grid(gray: np.ndarray, axis: int) -> list[tuple[int, int]]:
             cur = [i]
     if cur:
         bands.append((cur[0], cur[-1]))
-    bands = [b for b in bands if b[1] - b[0] >= 2]
+    # Linia siatki jest cienka w proporcji do arkusza: w arkuszu 896 px ma 3-4 px,
+    # w arkuszu 384 px juz tylko 2. Staly prog gubil cala siatke mniejszego arkusza
+    # i zwracal jedna komorke zamiast dziewieciu. Luzniejszy prog wchodzi dopiero
+    # wtedy, gdy ostrzejszy nie znalazl podzialu - duze arkusze tna sie jak dotad.
+    strict = [b for b in bands if b[1] - b[0] >= 2]
+    bands = strict if len(strict) >= 2 else [b for b in bands if b[1] - b[0] >= 1]
 
     cells, start = [], 0
     for lo, hi in bands:
@@ -190,13 +203,51 @@ def cut_cell(cell: np.ndarray) -> Image.Image | None:
     return canvas
 
 
+def figure_mask(rgb: np.ndarray) -> np.ndarray:
+    """True na pikselach postaci: wszystko poza szachownica i czarna siatka."""
+    return ~(checker_mask(rgb) | (rgb.mean(axis=2) < 110))
+
+
+def reference_stats() -> tuple[np.ndarray, np.ndarray]:
+    """Srednia i odchylenie kanalow RGB na pikselach postaci w arkuszach wzorcowych."""
+    samples = []
+    for sheet_id in COLOR_REFERENCE:
+        path = SRC / f"sheet-{sheet_id}.png"
+        if not path.exists():
+            continue
+        rgb = np.asarray(Image.open(path).convert("RGB")).astype(float)
+        samples.append(rgb[figure_mask(rgb)])
+    if not samples:
+        return None, None
+    pool = np.concatenate(samples)
+    return pool.mean(axis=0), pool.std(axis=0)
+
+
+def match_colors(rgb: np.ndarray, ref_mean, ref_std) -> np.ndarray:
+    """Przenosi statystyki koloru wzorca na postac, nie ruszajac tla."""
+    if ref_mean is None:
+        return rgb
+    mask = figure_mask(rgb)
+    if not mask.any():
+        return rgb
+    mean, std = rgb[mask].mean(axis=0), rgb[mask].std(axis=0)
+    out = rgb.copy()
+    out[mask] = (rgb[mask] - mean) / np.maximum(std, 1e-6) * ref_std + ref_mean
+    return np.clip(out, 0, 255)
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     SMALL_OUT.mkdir(parents=True, exist_ok=True)
     report = []
+    ref_mean, ref_std = reference_stats()
     for sheet_path in sorted(SRC.glob("sheet-*.png")):
         sheet_id = sheet_path.stem.split("-")[1]
-        img = np.asarray(Image.open(sheet_path).convert("RGB")).astype(int)
+        img = np.asarray(Image.open(sheet_path).convert("RGB")).astype(float)
+        if sheet_id in COLOR_MATCH:
+            img = match_colors(img, ref_mean, ref_std)
+            print(f"{sheet_path.name}: wyrownanie koloru do arkuszy {'/'.join(COLOR_REFERENCE)}")
+        img = img.astype(int)
         gray = img.mean(axis=2)
         rows = find_grid(gray, axis=0)
         cols = find_grid(gray, axis=1)
