@@ -7,7 +7,7 @@
  */
 import config from '../config.js';
 import { INTENT_TYPE_PREFERENCE } from './types.js';
-import { activeDocuments } from './store.js';
+import { activeDocuments, normalizeUrl } from './store.js';
 import { authorityOf } from './types.js';
 import { freshnessLabel, isCurrentlyValid, recencyScore } from './freshness.js';
 
@@ -87,6 +87,7 @@ export function retrieve(base, query, options = {}) {
   } = options;
 
   const queryTokens = tokenize(query);
+  const currentKey = normalizeUrl(currentUrl);
   const preferred = INTENT_TYPE_PREFERENCE[intent] ?? INTENT_TYPE_PREFERENCE.GENERAL;
   const results = [];
 
@@ -98,7 +99,9 @@ export function retrieve(base, query, options = {}) {
     const typeBonus = typeRank === -1 ? 0 : 0.34 - typeRank * 0.08;
     const authorityBonus = (8 - authorityOf(doc.sourceType)) / 40;
     const recency = recencyScore(doc, now);
-    const sameUrl = currentUrl && doc.sourceUrl === currentUrl ? 0.22 : 0;
+    // Przegladarka podaje adres tak, jak stoi w pasku (z ukosnikiem, z kotwica, z utm),
+    // a baza tak, jak stoi w sitemap. Bez normalizacji premia za biezaca strone nie dziala.
+    const sameUrl = currentKey && normalizeUrl(doc.sourceUrl) === currentKey ? 0.22 : 0;
     const title = keywordScore(queryTokens, `${doc.sourceTitle ?? ''} ${doc.headings.join(' ')}`);
 
     const chunks = doc.chunks.length ? doc.chunks : [{ id: `${doc.id}#0`, text: doc.content, anchor: null, heading: null }];

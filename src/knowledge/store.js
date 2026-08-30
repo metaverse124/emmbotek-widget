@@ -14,6 +14,54 @@ import { isSourceType } from './types.js';
 export const contentHash = (text) =>
   createHash('sha256').update(String(text ?? '').trim()).digest('hex').slice(0, 32);
 
+// Parametry sledzace nie zmieniaja tresci strony - dwa adresy roznice sie nimi
+// to ten sam dokument.
+const TRACKING_PARAMS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'fbclid', 'gclid', 'gbraid', 'wbraid', '_ga', 'ref', 'source',
+];
+
+/**
+ * Sprowadza adres do jednej postaci, zeby ten sam dokument nie trafil do bazy dwa razy
+ * ani nie zostal omylkowo zarchiwizowany.
+ *
+ * Powod: sitemap emmastudio.pl podaje `https://emmastudio.pl/oferta`, a rekordy zalozone
+ * recznie mialy `https://emmastudio.pl/oferta/`. Bez normalizacji crawler uznawal jedno
+ * za drugie zniknieciem ze strony i archiwizowal zywa podstrone.
+ *
+ * Ujednolicamy: schemat i host malymi literami, bez `www.`, bez kotwicy, bez parametrow
+ * sledzacych, bez konczacego ukosnika (poza korzeniem) i w postaci rozkodowanej -
+ * `/blog/tre%C5%9Bc` i `/blog/tresc` z polskim znakiem to jeden adres.
+ */
+export function normalizeUrl(raw) {
+  if (raw === null || raw === undefined) return null;
+  const text = String(raw).trim();
+  if (!text) return null;
+
+  let url;
+  try {
+    url = new URL(text);
+  } catch {
+    return text; // adres wzgledny albo smiec - zostaje jak byl, zeby nie zgubic rekordu
+  }
+
+  url.hash = '';
+  for (const param of TRACKING_PARAMS) url.searchParams.delete(param);
+  url.protocol = url.protocol.toLowerCase();
+  url.hostname = url.hostname.toLowerCase().replace(/^www\./, '');
+  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, '');
+
+  const out = url.toString();
+  try {
+    return decodeURI(out);
+  } catch {
+    return out; // niepoprawne kodowanie procentowe - lepiej zostawic surowy adres
+  }
+}
+
+/** Klucz tozsamosci dokumentu w bazie: znormalizowany adres, a w jego braku identyfikator. */
+export const documentKey = (doc) => normalizeUrl(doc?.sourceUrl) ?? doc?.id;
+
 const EMPTY = () => ({
   version: 1,
   site: config.site.url,
@@ -92,14 +140,16 @@ export function mergeDocuments(base, incoming, {
   archiveMissing = true,
   knownUrls = null,
 } = {}) {
-  const previous = new Map(base.documents.map((doc) => [doc.sourceUrl ?? doc.id, doc]));
+  const previous = new Map(base.documents.map((doc) => [documentKey(doc), doc]));
   const seen = new Set();
   const report = { added: [], updated: [], unchanged: [], archived: [] };
   const documents = [];
+  // Adresy z sitemap tez normalizujemy - inaczej porownanie kluczy nie ma sensu.
+  const known = knownUrls ? new Set([...knownUrls].map((url) => normalizeUrl(url))) : null;
 
   for (const raw of incoming) {
     const doc = makeDocument(raw);
-    const key = doc.sourceUrl ?? doc.id;
+    const key = documentKey(doc);
     seen.add(key);
     const old = previous.get(key);
 
@@ -127,7 +177,7 @@ export function mergeDocuments(base, incoming, {
 
   for (const [key, old] of previous) {
     if (seen.has(key)) continue;
-    const stillOnSite = knownUrls ? knownUrls.has(key) : false;
+    const stillOnSite = known ? known.has(key) : false;
     if (!archiveMissing || stillOnSite) {
       documents.push(old);
       continue;

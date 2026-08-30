@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { emptyBase, mergeDocuments, makeDocument, contentHash } from '../src/knowledge/store.js';
+import { emptyBase, mergeDocuments, makeDocument, contentHash, normalizeUrl } from '../src/knowledge/store.js';
 import { retrieve, hasUsableKnowledge } from '../src/knowledge/retrieval.js';
 import { isCurrentlyValid, isStale, resolveConflict, freshnessLabel } from '../src/knowledge/freshness.js';
 import { buildCtaMap, ctaUrl } from '../src/knowledge/ctaMap.js';
@@ -131,4 +131,53 @@ test('nowy wpis blogowy staje sie czescia wiedzy', () => {
 test('hash tresci wykrywa nawet drobna zmiane', () => {
   assert.notEqual(contentHash('1200 zl'), contentHash('1350 zl'));
   assert.equal(contentHash(' 1200 zl '), contentHash('1200 zl'));
+});
+
+test('normalizacja adresu sprowadza warianty tego samego adresu do jednej postaci', () => {
+  const wzorzec = 'https://emmastudio.pl/oferta';
+  assert.equal(normalizeUrl('https://emmastudio.pl/oferta/'), wzorzec);
+  assert.equal(normalizeUrl('https://WWW.emmastudio.pl/oferta'), wzorzec);
+  assert.equal(normalizeUrl('https://emmastudio.pl/oferta#cennik'), wzorzec);
+  assert.equal(normalizeUrl('https://emmastudio.pl/oferta?utm_source=fb'), wzorzec);
+  // korzen zachowuje ukosnik, bo bez niego adres przestaje byc adresem
+  assert.equal(normalizeUrl('https://emmastudio.pl/'), 'https://emmastudio.pl/');
+  assert.equal(normalizeUrl(''), null);
+});
+
+test('adres z ukosnikiem i bez to ten sam dokument, a nie dwa', () => {
+  const { base } = mergeDocuments(emptyBase(), [doc({ sourceUrl: 'https://emmastudio.pl/cennik/' })]);
+  const { base: after, report } = mergeDocuments(base, [
+    doc({ sourceUrl: 'https://emmastudio.pl/cennik', content: 'Kurs grupowy dla doroslych kosztuje 1350 zl za semestr.' }),
+  ]);
+  assert.equal(report.added.length, 0, 'to nie jest nowa podstrona');
+  assert.equal(report.updated.length, 1);
+  assert.equal(after.stats.documents, 1);
+});
+
+test('zywa podstrona nie znika z bazy przez sam ukosnik w sitemap', () => {
+  // Rekord zalozony recznie ma ukosnik, sitemap emmastudio.pl go nie ma.
+  const { base } = mergeDocuments(emptyBase(), [doc({ sourceUrl: 'https://emmastudio.pl/oferta/' })]);
+  const { base: after, report } = mergeDocuments(base, [], {
+    archiveMissing: true,
+    knownUrls: new Set(['https://emmastudio.pl/oferta']),
+  });
+  assert.equal(report.archived.length, 0);
+  assert.equal(after.documents[0].status, 'active');
+});
+
+test('premia za biezaca podstrone dziala mimo ukosnika w pasku adresu', () => {
+  const { base } = mergeDocuments(emptyBase(), [
+    doc({ sourceUrl: 'https://emmastudio.pl/cennik' }),
+    doc({
+      sourceUrl: 'https://emmastudio.pl/o-nas',
+      sourceTitle: 'O nas',
+      sourceType: 'GENERAL',
+      content: 'Kurs grupowy dla doroslych kosztuje 1200 zl za semestr.',
+      chunks: [{ text: 'Kurs grupowy dla doroslych kosztuje 1200 zl za semestr.' }],
+    }),
+  ]);
+  const wyniki = retrieve(base, 'ile kosztuje kurs grupowy', {
+    currentUrl: 'https://emmastudio.pl/cennik/?utm_source=fb#tabela',
+  });
+  assert.equal(wyniki[0].sourceUrl, 'https://emmastudio.pl/cennik');
 });

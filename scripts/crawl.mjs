@@ -47,3 +47,18 @@ if (report.failed.length) {
   console.log('\nNieudane adresy:');
   for (const item of report.failed.slice(0, 20)) console.log(`  - ${item.url}: ${item.reason}`);
 }
+
+if (report.blindRun) {
+  console.error('');
+  console.error('Przebieg nie wyciagnal tresci z zadnej strony - baza wiedzy zostala nietknieta.');
+  const pusteStrony = report.failed.filter((item) => item.reason === 'zbyt malo tresci').length;
+  if (pusteStrony === report.failed.length) {
+    console.error('Wszystkie adresy odpowiedzialy poprawnie, ale bez tresci. Tak zachowuje sie');
+    console.error('strona renderowana w przegladarce (React/Vite): w samym HTML jest tylko');
+    console.error('szkielet z meta, a tekst dokleja JavaScript, ktorego crawler nie wykonuje.');
+    console.error('Potrzebne zrodlo tresci niezalezne od przegladarki - patrz docs/zrodlo-wiedzy.md.');
+  } else {
+    console.error('Sprawdz, czy hosting nie odrzuca User-Agenta crawlera (403 z WAF).');
+  }
+  process.exit(2);
+}

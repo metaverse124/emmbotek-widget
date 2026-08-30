@@ -106,9 +106,15 @@ export async function syncKnowledge(base, {
   const documents = cleaned.map((page) => pageToDocument(page, { lastmod: page.lastmod }));
 
   const knownUrls = new Set(entries.map((entry) => entry.url));
+
+  // Przebieg, ktory nie wyciagnal tresci z ZADNEJ strony, jest przebiegiem zepsutym,
+  // a nie dowodem, ze strona zniknela. Tak wyglada blokada WAF, awaria hostingu albo
+  // strona renderowana w przegladarce (SPA) - archiwizacja skasowalaby wtedy cala wiedze.
+  const blindRun = documents.length === 0 && failures.length > 0;
+
   const { base: merged, report } = mergeDocuments(base, documents, {
     now,
-    archiveMissing: !timedOut,
+    archiveMissing: !timedOut && !blindRun,
     knownUrls,
   });
   merged.ctaMap = buildCtaMap(merged, { now: Date.parse(now) });
@@ -122,6 +128,7 @@ export async function syncKnowledge(base, {
       failed: failures,
       ctaTargets: Object.keys(merged.ctaMap).length,
       timedOut,
+      blindRun,
       remaining: timedOut ? entries.length - pages.length - failures.length : 0,
       durationMs: Date.now() - startedAt,
     },

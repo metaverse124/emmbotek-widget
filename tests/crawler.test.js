@@ -141,3 +141,43 @@ test('dokument dostaje contentHash i metadane', () => {
   assert.ok(doc.contentHash.length > 10);
   assert.ok(doc.chunks.length >= 1);
 });
+
+test('przebieg, w ktorym nie udalo sie nic pobrac, nie kasuje wiedzy', async () => {
+  const fetchText = async (url) => {
+    if (url.includes('sitemap')) return '<urlset><url><loc>https://emmastudio.pl/oferta</loc></url><url><loc>https://emmastudio.pl/kontakt</loc></url></urlset>';
+    throw new Error('HTTP 403');
+  };
+  const { base: start } = await syncKnowledge(emptyBase(), {
+    fetchText: async (url) => (url.includes('sitemap')
+      ? '<urlset><url><loc>https://emmastudio.pl/oferta</loc></url></urlset>'
+      : STRONA('<h1>Oferta</h1><p>Angielski i hiszpanski dla doroslych w Poznaniu, w grupach i indywidualnie.</p>')),
+    delayMs: 0,
+  });
+  assert.equal(start.stats.documents, 1);
+
+  const { base, report } = await syncKnowledge(start, { fetchText, delayMs: 0 });
+  assert.equal(report.blindRun, true);
+  assert.equal(report.archived.length, 0);
+  assert.equal(base.stats.documents, 1, 'wiedza musi przetrwac zepsuty przebieg');
+});
+
+test('strona renderowana w przegladarce daje same braki tresci, a nie ciche wyczyszczenie bazy', async () => {
+  // Tak wyglada SPA: szkielet HTML z meta, pusty <div id="root"> i nic wiecej.
+  const SZKIELET = '<!doctype html><html lang="pl"><head><title>Oferta</title></head><body><div id="root"></div></body></html>';
+  const { base: start } = await syncKnowledge(emptyBase(), {
+    fetchText: async (url) => (url.includes('sitemap')
+      ? '<urlset><url><loc>https://emmastudio.pl/oferta</loc></url></urlset>'
+      : STRONA('<h1>Oferta</h1><p>Angielski i hiszpanski dla doroslych w Poznaniu, w grupach i indywidualnie.</p>')),
+    delayMs: 0,
+  });
+
+  const { base, report } = await syncKnowledge(start, {
+    fetchText: async (url) => (url.includes('sitemap')
+      ? '<urlset><url><loc>https://emmastudio.pl/oferta</loc></url></urlset>'
+      : SZKIELET),
+    delayMs: 0,
+  });
+  assert.equal(report.failed[0].reason, 'zbyt malo tresci');
+  assert.equal(report.blindRun, true);
+  assert.equal(base.stats.documents, 1);
+});
