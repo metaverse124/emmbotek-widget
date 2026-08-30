@@ -162,9 +162,9 @@
     "SAD": {
       "label": "smutek (błąd / brak wiedzy)",
       "frames": [
-        "pose-05-r1c1.png",
         "pose-01-r3c1.png",
-        "pose-02-r1c2.png"
+        "pose-02-r1c2.png",
+        "pose-05-r1c1.png"
       ],
       "fps": 0.8,
       "motion": "lean",
