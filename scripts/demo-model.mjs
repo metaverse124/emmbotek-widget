@@ -6,15 +6,15 @@
 import { detectIntent } from '../src/agent/intents.js';
 
 const REPLIES = {
-  GREETING: ['[GREETING] Dzien dobry! W czym moge dzis pomoc?', []],
-  PRICE: ['[NEUTRAL] Aktualne stawki roznia sie w zaleznosci od trybu i liczby osob w grupie, dlatego podaje je zawsze z cennika, a nie z pamieci. Zajrzy Pan/Pani do aktualnej tabeli?', [{ type: 'VIEW_PRICE' }]],
-  CHILD: ['[SMILE] Dla dziewieciolatki najlepiej sprawdza sie zajecia w kameralnej grupie rowiesnikow - dzieci ucza sie tam przez zabawe i mowienie, a nie przez cisze przy tablicy. Czy corka miala juz wczesniej kontakt z angielskim?', [{ type: 'VIEW_FOR_CHILDREN' }]],
-  COMPANY: ['[FOCUS] Dla firm ukladamy program pod realne sytuacje zawodowe zespolu - spotkania, mejle, prezentacje. Ilu pracownikow miloby uczestniczyc w szkoleniu?', [{ type: 'VIEW_FOR_COMPANIES' }]],
-  EXAM: ['[PROUD] Przygotowujemy do FCE, CAE, IELTS i TOEFL. Kluczowe jest ustalenie punktu startowego - czy zna Pan/Pani swoj obecny poziom?', [{ type: 'VIEW_EXAM' }, { type: 'LEVEL_TEST' }]],
-  TRIAL_LESSON: ['[EXCITED] Bezplatna lekcja probna to najprostszy sposob, zeby sprawdzic grupe bez zobowiazan. Umowi sie Pan/Pani na termin?', [{ type: 'TRIAL_LESSON' }]],
-  LANGUAGE_QUESTION: ['[FOCUS] "Nevertheless" znaczy "niemniej jednak" i laczy dwa zdania mimo przeciwnego sensu: "It was raining; nevertheless, we went out." W mowie brzmi formalnie - w rozmowie czesciej uslyszy Pan/Pani "still" albo "anyway".', []],
-  CONTACT: ['[NEUTRAL] Najszybciej pomoze sekretariat - tam sa aktualne terminy i wolne miejsca.', [{ type: 'CONTACT' }]],
-  GENERAL: ['[CURIOUS] Chetnie pomoge dobrac kurs. Dla kogo szukamy zajec - dla dziecka, dla siebie czy dla zespolu w firmie?', []],
+  GREETING: ['[GREETING] Dzień dobry! W czym mogę dziś pomóc?', []],
+  PRICE: ['[NEUTRAL] Aktualne stawki różnią się w zależności od trybu i liczby osób w grupie, dlatego podaję je zawsze z cennika, a nie z pamięci. Zajrzy Pan/Pani do aktualnej tabeli?', [{ type: 'VIEW_PRICE' }]],
+  CHILD: ['[SMILE] Dla dziewięciolatki najlepiej sprawdzają się zajęcia w kameralnej grupie rówieśników — dzieci uczą się tam przez zabawę i mówienie, a nie przez ciszę przy tablicy. Czy córka miała już wcześniej kontakt z angielskim?', [{ type: 'VIEW_FOR_CHILDREN' }]],
+  COMPANY: ['[FOCUS] Dla firm układamy program pod realne sytuacje zawodowe zespołu — spotkania, mejle, prezentacje. Ilu pracowników miałoby uczestniczyć w szkoleniu?', [{ type: 'VIEW_FOR_COMPANIES' }]],
+  EXAM: ['[PROUD] Przygotowujemy do FCE, CAE, IELTS i TOEFL. Kluczowe jest ustalenie punktu startowego — czy zna Pan/Pani swój obecny poziom?', [{ type: 'VIEW_EXAM' }, { type: 'LEVEL_TEST' }]],
+  TRIAL_LESSON: ['[EXCITED] Bezpłatna lekcja próbna to najprostszy sposób, żeby sprawdzić grupę bez zobowiązań. Umówi się Pan/Pani na termin?', [{ type: 'TRIAL_LESSON' }]],
+  LANGUAGE_QUESTION: ['[FOCUS] „Nevertheless" znaczy „niemniej jednak" i łączy dwa zdania mimo przeciwnego sensu: "It was raining; nevertheless, we went out." W mowie brzmi formalnie — w rozmowie częściej usłyszy Pan/Pani „still" albo „anyway".', []],
+  CONTACT: ['[NEUTRAL] Najszybciej pomoże sekretariat — tam są aktualne terminy i wolne miejsca.', [{ type: 'CONTACT' }]],
+  GENERAL: ['[CURIOUS] Chętnie pomogę dobrać kurs. Dla kogo szukamy zajęć — dla dziecka, dla siebie czy dla zespołu w firmie?', []],
 };
 
 export async function demoGenerate({ contents = [] } = {}) {

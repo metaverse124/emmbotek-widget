@@ -101,7 +101,7 @@ test('wyczerpany limit Gemini: graceful degradation zamiast bledu 429', async ()
   assert.equal(res.statusCode, 200);
   assert.equal(res.json.degraded, true);
   assert.equal(res.json.reason, 'rate_limit');
-  assert.match(res.json.message, /komplet rozmow/);
+  assert.match(res.json.message, /komplet rozmów/);
   assert.ok(res.json.cta.length >= 1, 'powinien pojawic sie kontakt do sekretariatu');
 });
 

@@ -24,25 +24,25 @@
     apiUrl: '/api/chat',
     analyticsUrl: '/api/analytics',
     assetsBase: '/',
-    tabLabel: 'Zapytaj eMMe',
+    tabLabel: 'Zapytaj eMMę',
     title: 'eMMa - asystent',
     status: 'Odpowiada zwykle od razu',
-    greeting: 'Dzien dobry! W czym moge dzis pomoc?',
-    rodoNote: 'Ta rozmowa jest zapisywana lokalnie w Twojej przegladarce, aby eMMa mogla pamietac kontekst rozmowy.',
+    greeting: 'Dzień dobry! W czym mogę dziś pomóc?',
+    rodoNote: 'Ta rozmowa jest zapisywana lokalnie w Twojej przeglądarce, aby eMMa mogła pamiętać kontekst rozmowy.',
     privacyUrl: null,
-    startChips: ['Kurs dla dziecka', 'Angielski dla mnie', 'Szkolenie dla firmy', 'Cennik', 'Lekcja probna'],
+    startChips: ['Kurs dla dziecka', 'Angielski dla mnie', 'Szkolenie dla firmy', 'Cennik', 'Lekcja próbna'],
     openOnLoad: false,
   };
 
   /** Kontekstowe chipsy zalezne od podstrony (sekcja 42 briefu). */
   var PAGE_CHIPS = [
-    { match: /dzieci|dziecko/i, chips: ['Cennik', 'Dla jakiego wieku?', 'Lekcja probna'] },
-    { match: /firm|biznes|b2b/i, chips: ['Oferta dla firm', 'Jak to wyglada?', 'Zapytaj o szkolenie'] },
-    { match: /aktualnosci|news/i, chips: ['Sprawdz szczegoly', 'Dla kogo jest grupa?', 'Jak sie zapisac?'] },
-    { match: /cennik|ceny/i, chips: ['Co wplywa na cene?', 'Lekcja probna', 'Zajecia indywidualne'] },
-    { match: /egzamin|fce|cae|ielts|toefl/i, chips: ['Ile trwa przygotowanie?', 'Test poziomujacy', 'Cennik'] },
-    { match: /blog|artykul/i, chips: ['Streszcz artykul', 'Powiazane kursy', 'Mam pytanie jezykowe'] },
-    { match: /doros/i, chips: ['Zajecia po pracy', 'Test poziomujacy', 'Cennik'] },
+    { match: /dzieci|dziecko/i, chips: ['Cennik', 'Dla jakiego wieku?', 'Lekcja próbna'] },
+    { match: /firm|biznes|b2b/i, chips: ['Oferta dla firm', 'Jak to wygląda?', 'Zapytaj o szkolenie'] },
+    { match: /aktualnosci|news/i, chips: ['Sprawdź szczegóły', 'Dla kogo jest grupa?', 'Jak się zapisać?'] },
+    { match: /cennik|ceny/i, chips: ['Co wpływa na cenę?', 'Lekcja próbna', 'Zajęcia indywidualne'] },
+    { match: /egzamin|fce|cae|ielts|toefl/i, chips: ['Ile trwa przygotowanie?', 'Test poziomujący', 'Cennik'] },
+    { match: /blog|artykul/i, chips: ['Streszcz artykuł', 'Powiązane kursy', 'Mam pytanie językowe'] },
+    { match: /doros/i, chips: ['Zajęcia po pracy', 'Test poziomujący', 'Cennik'] },
   ];
 
   var state = {
@@ -102,7 +102,7 @@
     state.nodes.log.innerHTML = '';
     addMessage('model', state.options.greeting, { emotion: 'GREETING', save: false });
     renderChips(startChips());
-    announce('Rozmowa zostala wyczyszczona.');
+    announce('Rozmowa została wyczyszczona.');
   }
 
   /* ------------------------------------------------------------------- DOM */
@@ -147,8 +147,8 @@
 
     var clearBtn = el('button', 'emma__icon-btn', '');
     clearBtn.type = 'button';
-    clearBtn.title = 'Wyczysc rozmowe';
-    clearBtn.setAttribute('aria-label', 'Wyczysc rozmowe');
+    clearBtn.title = 'Wyczyść rozmowę';
+    clearBtn.setAttribute('aria-label', 'Wyczyść rozmowę');
     clearBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7h12M9 7V5h6v2m-8 0 1 12h8l1-12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
     var closeBtn = el('button', 'emma__icon-btn', '');
@@ -167,7 +167,7 @@
     log.setAttribute('aria-live', 'polite');
     log.setAttribute('aria-relevant', 'additions text');
     log.setAttribute('tabindex', '0');
-    log.setAttribute('aria-label', 'Historia rozmowy z eMMa');
+    log.setAttribute('aria-label', 'Historia rozmowy z eMMą');
 
     var chips = el('div', 'emma__chips');
     chips.setAttribute('aria-label', 'Podpowiedzi');
@@ -177,13 +177,13 @@
     var input = el('textarea', 'emma__input');
     input.rows = 1;
     input.maxLength = MAX_CHARS;
-    input.placeholder = 'Napisz wiadomosc...';
-    input.setAttribute('aria-label', 'Tresc wiadomosci do eMMy');
+    input.placeholder = 'Napisz wiadomość…';
+    input.setAttribute('aria-label', 'Treść wiadomości do eMMy');
     var counter = el('span', 'emma__counter', '0/' + MAX_CHARS);
     counter.setAttribute('aria-hidden', 'true');
     var send = el('button', 'emma__send');
     send.type = 'submit';
-    send.setAttribute('aria-label', 'Wyslij wiadomosc');
+    send.setAttribute('aria-label', 'Wyślij wiadomość');
     send.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.6 20.4 21 12 3.6 3.6 3.6 10.2 15 12 3.6 13.8z" fill="currentColor"/></svg>';
     field.appendChild(input);
     field.appendChild(counter);
@@ -192,11 +192,11 @@
 
     var note = el('p', 'emma__note');
     note.appendChild(doc.createTextNode(state.options.rodoNote + ' '));
-    var clearLink = el('button', 'emma__link', 'Wyczysc rozmowe');
+    var clearLink = el('button', 'emma__link', 'Wyczyść rozmowę');
     clearLink.type = 'button';
     note.appendChild(clearLink);
     if (state.options.privacyUrl) {
-      var privacy = el('a', 'emma__link', 'Polityka prywatnosci');
+      var privacy = el('a', 'emma__link', 'Polityka prywatności');
       privacy.href = state.options.privacyUrl;
       privacy.target = '_blank';
       privacy.rel = 'noopener';
@@ -282,7 +282,7 @@
     row.appendChild(bubble);
     state.nodes.log.appendChild(row);
     scrollLog();
-    announce('eMMa pisze odpowiedz.');
+    announce('eMMa pisze odpowiedź.');
     return row;
   }
 
@@ -420,7 +420,7 @@
       .catch(function () {
         typing.remove();
         if (state.avatar) state.avatar.set('EMPATHY');
-        addMessage('model', 'Chwilowo nie moge sie polaczyc. Prosze sprobowac za moment albo napisac do sekretariatu.', { save: false });
+        addMessage('model', 'Chwilowo nie mogę się połączyć. Proszę spróbować za moment albo napisać do sekretariatu.', { save: false });
       })
       .then(function () {
         state.busy = false;
@@ -476,7 +476,7 @@
     if (state.avatar) state.avatar.preloadAll();
 
     global.setTimeout(function () { state.nodes.input.focus(); }, 60);
-    announce('Okno rozmowy z eMMa jest otwarte.');
+    announce('Okno rozmowy z eMMą jest otwarte.');
   }
 
   function close() {

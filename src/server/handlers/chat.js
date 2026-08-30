@@ -27,10 +27,10 @@ import { recordGap } from '../../knowledge/gaps.js';
 
 /** Komunikat przy wyczerpaniu limitow Gemini (sekcja 39 briefu) - nigdy surowy blad 429. */
 const OVERLOADED_MESSAGE =
-  'Chwilowo mam komplet rozmow - prosze zostawic kontakt, a sekretariat eMMy pomoze Panu/Pani dalej.';
+  'Chwilowo mam komplet rozmów — proszę zostawić kontakt, a sekretariat eMMy pomoże Panu/Pani dalej.';
 
 const FALLBACK_MESSAGE =
-  'Przepraszam, chwilowo nie moge pobrac odpowiedzi. Prosze sprobowac za moment albo napisac do sekretariatu.';
+  'Przepraszam, chwilowo nie mogę pobrać odpowiedzi. Proszę spróbować za moment albo napisać do sekretariatu.';
 
 let cachedBase = null;
 let cachedAt = 0;
@@ -69,7 +69,7 @@ export function createChatHandler({
     if (!rate.allowed) {
       return json(res, 429, {
         emotion: systemEmotion.overloaded,
-        message: 'Chwileczke - odpowiadam na kilka pytan naraz. Prosze napisac ponownie za moment.',
+        message: 'Chwileczkę — odpowiadam na kilka pytań naraz. Proszę napisać ponownie za moment.',
         cta: [],
         retryAfterMs: rate.retryAfterMs,
       }, { 'retry-after': Math.ceil(rate.retryAfterMs / 1000) });

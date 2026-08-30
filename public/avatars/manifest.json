@@ -30,7 +30,7 @@
       "hold": 2600
     },
     "SMILE": {
-      "label": "usmiech",
+      "label": "uśmiech",
       "frames": [
         "pose-01-r1c3.png",
         "pose-02-r1c3.png",
@@ -41,7 +41,7 @@
       "hold": 2200
     },
     "THINKING": {
-      "label": "namysl",
+      "label": "namysł",
       "frames": [
         "pose-01-r2c1.png",
         "pose-02-r3c3.png",
@@ -62,7 +62,7 @@
       "hold": 2400
     },
     "FUNNY": {
-      "label": "zart",
+      "label": "żart",
       "frames": [
         "pose-01-r2c3.png",
         "pose-03-r1c3.png"
@@ -82,7 +82,7 @@
       "hold": 3000
     },
     "CURIOUS": {
-      "label": "ciekawosc",
+      "label": "ciekawość",
       "frames": [
         "pose-01-r2c2.png",
         "pose-02-r2c1.png"
@@ -123,7 +123,7 @@
       "hold": 3000
     },
     "SHY": {
-      "label": "niesmialosc",
+      "label": "nieśmiałość",
       "frames": [
         "pose-02-r3c1.png",
         "pose-03-r3c1.png"
@@ -135,7 +135,7 @@
   },
   "extraStates": {
     "SLEEPY": {
-      "label": "drzemka (bezczynnosc)",
+      "label": "drzemka (bezczynność)",
       "frames": [
         "pose-03-r2c3.png",
         "pose-01-r3c2.png"
@@ -145,7 +145,7 @@
       "hold": 0
     },
     "SAD": {
-      "label": "smutek (blad / brak wiedzy)",
+      "label": "smutek (błąd / brak wiedzy)",
       "frames": [
         "pose-01-r3c1.png",
         "pose-02-r1c2.png"

@@ -20,23 +20,23 @@ export const CTA_TYPES = [
 
 /** Definicje CTA: etykieta, ikona, cel w mapie URL, akcja i etap rozmowy. */
 const CATALOG = {
-  VIEW_FULL_OFFER:    { label: 'Zobacz pelna oferte',            icon: '📚', target: 'OFFER',           action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
-  VIEW_COURSE:        { label: 'Zobacz szczegoly kursu',         icon: '📘', target: 'OFFER',           action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_FOR_CHILDREN:  { label: 'Poznaj oferte dla dzieci',       icon: '📚', target: 'COURSE_CHILDREN', action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
-  VIEW_FOR_ADULTS:    { label: 'Poznaj oferte dla doroslych',    icon: '📚', target: 'COURSE_ADULTS',   action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
-  VIEW_FOR_COMPANIES: { label: 'Zobacz oferte dla firm',         icon: '🏢', target: 'COMPANY',         action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  VIEW_FULL_OFFER:    { label: 'Zobacz pełną ofertę',            icon: '📚', target: 'OFFER',           action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  VIEW_COURSE:        { label: 'Zobacz szczegóły kursu',         icon: '📘', target: 'OFFER',           action: 'url',   stage: ['dopasowanie', 'decyzja'] },
+  VIEW_FOR_CHILDREN:  { label: 'Poznaj ofertę dla dzieci',       icon: '📚', target: 'COURSE_CHILDREN', action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  VIEW_FOR_ADULTS:    { label: 'Poznaj ofertę dla dorosłych',    icon: '📚', target: 'COURSE_ADULTS',   action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  VIEW_FOR_COMPANIES: { label: 'Zobacz ofertę dla firm',         icon: '🏢', target: 'COMPANY',         action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
   VIEW_PRICE:         { label: 'Zobacz aktualny cennik',         icon: '💰', target: 'PRICE',           action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_SCHEDULE:      { label: 'Sprawdz harmonogram',            icon: '🗓️', target: 'SCHEDULE',        action: 'url',   stage: ['dopasowanie', 'decyzja'] },
+  VIEW_SCHEDULE:      { label: 'Sprawdź harmonogram',            icon: '🗓️', target: 'SCHEDULE',        action: 'url',   stage: ['dopasowanie', 'decyzja'] },
   VIEW_EXAM:          { label: 'Zobacz kursy egzaminacyjne',     icon: '🎓', target: 'EXAM',            action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_NEWS:          { label: 'Zobacz nowa grupe',              icon: '🆕', target: 'NEWS',            action: 'url',   stage: ['eksploracja', 'dopasowanie', 'decyzja'] },
-  VIEW_BLOG:          { label: 'Przeczytaj caly artykul',        icon: '📖', target: 'BLOG',            action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
-  TRIAL_LESSON:       { label: 'Umow bezplatna lekcje probna',   icon: '✨', target: 'TRIAL_LESSON',    action: 'url',   stage: ['decyzja', 'kontakt'], fallbackTarget: 'CONTACT', fallbackAnchor: 'lekcja-probna' },
-  LEVEL_TEST:         { label: 'Zrob test poziomujacy',          icon: '🧭', target: 'LEVEL_TEST',      action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  CONTACT:            { label: 'Skontaktuj sie z sekretariatem', icon: '💬', target: 'CONTACT',         action: 'url',   stage: ['decyzja', 'kontakt'] },
-  FORM:               { label: 'Wyslij formularz',               icon: '📝', target: 'CONTACT',         action: 'url',   stage: ['kontakt'] },
-  CALL:               { label: 'Zadzwon do sekretariatu',        icon: '📞', target: 'CONTACT',         action: 'call',  stage: ['kontakt'] },
+  VIEW_NEWS:          { label: 'Zobacz nową grupę',              icon: '🆕', target: 'NEWS',            action: 'url',   stage: ['eksploracja', 'dopasowanie', 'decyzja'] },
+  VIEW_BLOG:          { label: 'Przeczytaj cały artykuł',        icon: '📖', target: 'BLOG',            action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  TRIAL_LESSON:       { label: 'Umów bezpłatną lekcję próbną',   icon: '✨', target: 'TRIAL_LESSON',    action: 'url',   stage: ['decyzja', 'kontakt'], fallbackTarget: 'CONTACT', fallbackAnchor: 'lekcja-probna' },
+  LEVEL_TEST:         { label: 'Zrób test poziomujący',          icon: '🧭', target: 'LEVEL_TEST',      action: 'url',   stage: ['dopasowanie', 'decyzja'] },
+  CONTACT:            { label: 'Skontaktuj się z sekretariatem', icon: '💬', target: 'CONTACT',         action: 'url',   stage: ['decyzja', 'kontakt'] },
+  FORM:               { label: 'Wyślij formularz',               icon: '📝', target: 'CONTACT',         action: 'url',   stage: ['kontakt'] },
+  CALL:               { label: 'Zadzwoń do sekretariatu',        icon: '📞', target: 'CONTACT',         action: 'call',  stage: ['kontakt'] },
   EMAIL:              { label: 'Napisz e-mail',                  icon: '✉️', target: 'CONTACT',         action: 'email', stage: ['kontakt'] },
-  LOCATION:           { label: 'Sprawdz dojazd',                 icon: '📍', target: 'LOCATION',        action: 'url',   stage: ['dopasowanie', 'decyzja'], fallbackTarget: 'CONTACT' },
+  LOCATION:           { label: 'Sprawdź dojazd',                 icon: '📍', target: 'LOCATION',        action: 'url',   stage: ['dopasowanie', 'decyzja'], fallbackTarget: 'CONTACT' },
 };
 
 /** Intencja -> kandydaci CTA w kolejnosci trafnosci. */
