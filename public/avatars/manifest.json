@@ -22,8 +22,8 @@
     "GREETING": {
       "label": "powitanie",
       "frames": [
-        "pose-03-r3c3.png",
-        "pose-02-r2c3.png"
+        "pose-02-r2c3.png",
+        "pose-02-r1c3.png"
       ],
       "fps": 2.2,
       "motion": "wave",
@@ -44,7 +44,6 @@
       "label": "namysł",
       "frames": [
         "pose-01-r2c1.png",
-        "pose-02-r3c3.png",
         "pose-01-r2c2.png"
       ],
       "fps": 1.6,
@@ -55,7 +54,7 @@
       "label": "entuzjazm",
       "frames": [
         "pose-03-r1c1.png",
-        "pose-01-r3c3.png"
+        "pose-02-r2c3.png"
       ],
       "fps": 3,
       "motion": "hop",
@@ -189,10 +188,6 @@
       "opis": "senne, przymkniete powieki"
     },
     {
-      "file": "pose-01-r3c3.png",
-      "opis": "smiech z zamknietymi oczami, iskra"
-    },
-    {
       "file": "pose-02-r1c1.png",
       "opis": "zaniepokojenie, zlaczone lapki"
     },
@@ -225,10 +220,6 @@
       "opis": "spokojny, zadowolony usmiech"
     },
     {
-      "file": "pose-02-r3c3.png",
-      "opis": "lapka przy piersi, wyraz zastanowienia"
-    },
-    {
       "file": "pose-03-r1c1.png",
       "opis": "radosny smiech z uniesionymi lapkami"
     },
@@ -259,10 +250,7 @@
     {
       "file": "pose-03-r3c2.png",
       "opis": "delikatny usmiech - stan bazowy"
-    },
-    {
-      "file": "pose-03-r3c3.png",
-      "opis": "machanie lapka, iskra - powitanie"
     }
-  ]
+  ],
+  "note": "Kafelki r3c3 z kazdego arkusza pominieto - nosza widoczny znak wodny modelu generujacego. Skrypt scripts/extract_avatars.py wyklucza je trwale."
 }

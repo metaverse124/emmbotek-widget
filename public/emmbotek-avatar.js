@@ -1,7 +1,7 @@
 /**
  * Emmbotek - animowany awatar eMMy AI.
  *
- * Pozy wyizolowane z arkuszy maskotki (27 sztuk) sa zmapowane w avatars/manifest.json
+ * Pozy wyizolowane z arkuszy maskotki (24 sztuki) sa zmapowane w avatars/manifest.json
  * na 12 emocji z briefu. Animacja ma dwie warstwy:
  *   1. klatki (podmiana pozy w petli - "prawdziwa" animacja postaci),
  *   2. ruch CSS (bujanie, przechylenie, podskok) dopasowany do emocji.

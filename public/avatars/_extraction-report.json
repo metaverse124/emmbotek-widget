@@ -56,13 +56,6 @@
     "coverage": 0.4575
   },
   {
-    "file": "pose-01-r3c3.png",
-    "sheet": "01",
-    "row": 3,
-    "col": 3,
-    "coverage": 0.4695
-  },
-  {
     "file": "pose-02-r1c1.png",
     "sheet": "02",
     "row": 1,
@@ -119,13 +112,6 @@
     "coverage": 0.4534
   },
   {
-    "file": "pose-02-r3c3.png",
-    "sheet": "02",
-    "row": 3,
-    "col": 3,
-    "coverage": 0.4611
-  },
-  {
     "file": "pose-03-r1c1.png",
     "sheet": "03",
     "row": 1,
@@ -180,12 +166,5 @@
     "row": 3,
     "col": 2,
     "coverage": 0.4551
-  },
-  {
-    "file": "pose-03-r3c3.png",
-    "sheet": "03",
-    "row": 3,
-    "col": 3,
-    "coverage": 0.4884
   }
 ]

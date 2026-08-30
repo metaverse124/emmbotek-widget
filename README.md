@@ -54,13 +54,13 @@ EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──
 | Serwer | `src/server/{http,rateLimit,validate}.js`, `src/server/handlers/{chat,sync,analytics}.js` |
 | Endpointy | `api/{chat,sync,analytics}.js` (Vercel) |
 | Frontend | `public/{emma-widget.js,emma-widget.css,emmbotek-avatar.js,index.html}` |
-| Awatar | `public/avatars/` (27 poz + `manifest.json`) |
+| Awatar | `public/avatars/` (24 pozy + `manifest.json`) |
 
 ---
 
 ## Awatar Emmbotek
 
-27 poz maskotki zostało wyizolowanych z trzech arkuszy 3×3 skryptem
+24 pozy maskotki zostały wyizolowane z trzech arkuszy 3×3 skryptem
 `scripts/extract_avatars.py`:
 
 1. wykrycie czarnych linii siatki → podział na 9 komórek,
@@ -68,6 +68,10 @@ EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──
 3. domknięcie dziur + wybór największej spójnej bryły (odrzuca iskierki i śmieci),
 4. dekontaminacja koloru na krawędzi (usuwa szarą obwódkę) + wygładzenie alfy,
 5. przycięcie do sylwetki i wyśrodkowanie na kwadracie.
+
+Prawy dolny kafelek każdego arkusza (`r3c3`) nosi widoczny znak wodny modelu generującego —
+biały błysk na brzuchu maskotki. Te trzy pozy są trwale wykluczone w skrypcie (`WATERMARKED`),
+więc nie wrócą przy ponownym uruchomieniu `npm run avatars`.
 
 Wynik: `public/avatars/pose-*.png` (512 px) oraz `public/avatars/small/` (192 px, ~9 kB/klatkę —
 to właśnie tę wersję ładuje widget).

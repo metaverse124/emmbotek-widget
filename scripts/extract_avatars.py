@@ -6,7 +6,8 @@ Wyjscie : public/avatars/pose-<sheet>-r<r>c<c>.png        (RGBA 512 px, przyciet
           public/avatars/small/pose-<sheet>-r<r>c<c>.png  (RGBA 192 px, ~9 kB - uzywane przez widget)
 
 Algorytm:
-  1. wykrycie czarnych linii siatki -> podzial na 9 komorek,
+  1. wykrycie czarnych linii siatki -> podzial na 9 komorek (kafelki ze znakiem
+     wodnym modelu sa pomijane - patrz WATERMARKED),
   2. flood fill od krawedzi po pikselach "szachownicowych" (neutralny szary/bialy),
   3. domkniecie dziur, wybor najwiekszej spojnej bryly (odrzuca iskierki i smieci),
      lekka erozja + rozmycie kanalu alfa (gladka krawedz),
@@ -26,6 +27,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "assets" / "source"
 OUT = ROOT / "public" / "avatars"
 SMALL_OUT = OUT / "small"
+
+# Prawy dolny kafelek kazdego arkusza nosi widoczny znak wodny modelu generujacego
+# (bialy, czteroramienny blysk na brzuchu maskotki). Takich poz nie publikujemy.
+WATERMARKED = {('01', 3, 3), ('02', 3, 3), ('03', 3, 3)}
 
 CANVAS = 512          # docelowy bok kwadratu (wersja pelna)
 SMALL = 192           # wersja dla widgetu (lekka, kwantyzowana)
@@ -199,6 +204,9 @@ def main() -> None:
 
         for r, (ry0, ry1) in enumerate(rows, start=1):
             for c, (cx0, cx1) in enumerate(cols, start=1):
+                if (sheet_id, r, c) in WATERMARKED:
+                    print(f'  pominieto r{r}c{c} (widoczny znak wodny modelu)')
+                    continue
                 pose = cut_cell(img[ry0:ry1, cx0:cx1])
                 if pose is None:
                     print(f"  pominieto r{r}c{c} (pusta komorka)")

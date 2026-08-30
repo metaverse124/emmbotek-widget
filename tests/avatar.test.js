@@ -9,10 +9,24 @@ const DIR = path.resolve('public/avatars');
 const manifest = JSON.parse(await readFile(path.join(DIR, 'manifest.json'), 'utf8'));
 const pliki = (await readdir(DIR)).filter((name) => name.startsWith('pose-') && name.endsWith('.png'));
 
-test('wyizolowano 27 poz maskotki z trzech arkuszy 3x3', () => {
-  assert.equal(pliki.length, 27);
+test('wyizolowano 24 pozy: po 8 z kazdego arkusza 3x3', () => {
+  // Kafelek r3c3 kazdego arkusza nosi widoczny znak wodny modelu i jest pomijany.
+  assert.equal(pliki.length, 24);
   for (const sheet of ['01', '02', '03']) {
-    assert.equal(pliki.filter((name) => name.startsWith(`pose-${sheet}-`)).length, 9);
+    assert.equal(pliki.filter((name) => name.startsWith(`pose-${sheet}-`)).length, 8);
+  }
+});
+
+test('zadna poza ze znakiem wodnym nie zostala opublikowana', () => {
+  for (const watermarked of ['pose-01-r3c3.png', 'pose-02-r3c3.png', 'pose-03-r3c3.png']) {
+    assert.ok(!pliki.includes(watermarked), `${watermarked} nie moze byc w repozytorium`);
+  }
+  const uzyte = new Set();
+  for (const grupa of [manifest.emotions, manifest.extraStates]) {
+    for (const definition of Object.values(grupa)) definition.frames.forEach((file) => uzyte.add(file));
+  }
+  for (const watermarked of ['pose-01-r3c3.png', 'pose-02-r3c3.png', 'pose-03-r3c3.png']) {
+    assert.ok(!uzyte.has(watermarked), `manifest nie moze odwolywac sie do ${watermarked}`);
   }
 });
 
@@ -44,17 +58,17 @@ test('kazda wyizolowana poza jest opisana w manifescie', () => {
   assert.equal(opisane.size, pliki.length);
 });
 
-test('zadna poza nie zostala bez uzycia', () => {
+test('kazda opublikowana poza jest wykorzystana', () => {
   const uzyte = new Set();
   for (const grupa of [manifest.emotions, manifest.extraStates]) {
     for (const definition of Object.values(grupa)) definition.frames.forEach((file) => uzyte.add(file));
   }
-  assert.equal(uzyte.size, pliki.length, 'wszystkie 27 poz powinno byc wykorzystane');
+  assert.equal(uzyte.size, pliki.length, 'wszystkie opublikowane pozy powinny byc wykorzystane');
 });
 
 test('wersja dla widgetu jest lekka (< 25 kB na klatke)', async () => {
   const male = (await readdir(path.join(DIR, 'small'))).filter((name) => name.endsWith('.png'));
-  assert.equal(male.length, 27);
+  assert.equal(male.length, 24);
   for (const file of male) {
     const info = await stat(path.join(DIR, 'small', file));
     assert.ok(info.size < 25 * 1024, `${file} wazy ${Math.round(info.size / 1024)} kB`);
