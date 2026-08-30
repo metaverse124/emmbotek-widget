@@ -71,7 +71,7 @@ mogą mieć pole `embedding` — wtedy wynik semantyczny (0,55) miesza się z le
 |---|---|---|
 | Awatar, 12 emocji | `public/emmbotek-avatar.js`, `avatars/manifest.json` | `avatar.test.js`, `emotions.test.js` |
 | Okno 380×560, fullscreen < 640 px | `emma-widget.css` | zweryfikowane w przeglądarce |
-| Side tab „Zapytaj eMMę”, branding `#133B47` + złoty akcent | `emma-widget.js/.css` | — |
+| Side tab „Zapytaj Emmbotka”, branding `#133B47` + złoty akcent | `emma-widget.js/.css` | — |
 | Focus trap, `aria-live`, Esc, `role="dialog"` | `emma-widget.js` | zweryfikowane w przeglądarce |
 | `prefers-reduced-motion` | `emma-widget.css` + `EmmbotekAvatar.reducedMotion()` | zweryfikowane w przeglądarce |
 | Dynamiczne chipsy | `PAGE_CHIPS` w `emma-widget.js` | — |

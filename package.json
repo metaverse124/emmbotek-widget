@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "eMMa AI - asystentka edukacyjna Prywatnego Studia Jezykow Obcych eMMa (Living Knowledge Base + Contextual CTA Engine + animowany awatar Emmbotek).",
+  "description": "Emmbotek - asystent edukacyjny Prywatnego Studia Jezykow Obcych eMMa (Living Knowledge Base + Contextual CTA Engine + animowany awatar).",
   "engines": { "node": ">=20" },
   "scripts": {
     "test": "node --test tests/*.test.js",

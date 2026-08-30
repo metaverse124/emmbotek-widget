@@ -79,7 +79,7 @@ export const config = {
   branding: {
     base: '#133B47',
     accent: '#D9A441',
-    tabLabel: 'Zapytaj eMMe',
+    tabLabel: 'Zapytaj Emmbotka',
   },
 };
 

@@ -1,7 +1,7 @@
 /**
- * eMMa AI - widget czatu (Vanilla JS, bez zaleznosci).
+ * Emmbotek - widget czatu asystenta eMMa Studio (Vanilla JS, bez zaleznosci).
  *
- * Zawiera: side tab "Zapytaj eMMe", okno 380x560 (fullscreen < 640 px),
+ * Zawiera: side tab "Zapytaj Emmbotka", okno 380x560 (fullscreen < 640 px),
  * animowany awatar Emmbotek, kontekstowe chipsy, Contextual CTA,
  * pamiec rozmowy w localStorage z informacja RODO, dostepnosc
  * (role="dialog", aria-live, focus trap, Esc) i lazy-init.
@@ -24,11 +24,11 @@
     apiUrl: '/api/chat',
     analyticsUrl: '/api/analytics',
     assetsBase: '/',
-    tabLabel: 'Zapytaj eMMę',
-    title: 'eMMa - asystent',
-    status: 'Odpowiada zwykle od razu',
-    greeting: 'Dzień dobry! W czym mogę dziś pomóc?',
-    rodoNote: 'Ta rozmowa jest zapisywana lokalnie w Twojej przeglądarce, aby eMMa mogła pamiętać kontekst rozmowy.',
+    tabLabel: 'Zapytaj Emmbotka',
+    title: 'Emmbotek',
+    status: 'Asystent eMMa Studio · odpowiada od razu',
+    greeting: 'Dzień dobry! Jestem Emmbotek, asystent eMMa Studio. W czym mogę pomóc?',
+    rodoNote: 'Ta rozmowa jest zapisywana lokalnie w Twojej przeglądarce, aby Emmbotek pamiętał jej kontekst.',
     privacyUrl: null,
     startChips: ['Kurs dla dziecka', 'Angielski dla mnie', 'Szkolenie dla firmy', 'Cennik', 'Lekcja próbna'],
     openOnLoad: false,
@@ -167,7 +167,7 @@
     log.setAttribute('aria-live', 'polite');
     log.setAttribute('aria-relevant', 'additions text');
     log.setAttribute('tabindex', '0');
-    log.setAttribute('aria-label', 'Historia rozmowy z eMMą');
+    log.setAttribute('aria-label', 'Historia rozmowy z Emmbotkiem');
 
     var chips = el('div', 'emma__chips');
     chips.setAttribute('aria-label', 'Podpowiedzi');
@@ -178,7 +178,7 @@
     input.rows = 1;
     input.maxLength = MAX_CHARS;
     input.placeholder = 'Napisz wiadomość…';
-    input.setAttribute('aria-label', 'Treść wiadomości do eMMy');
+    input.setAttribute('aria-label', 'Treść wiadomości do Emmbotka');
     var counter = el('span', 'emma__counter', '0/' + MAX_CHARS);
     counter.setAttribute('aria-hidden', 'true');
     var send = el('button', 'emma__send');
@@ -282,7 +282,7 @@
     row.appendChild(bubble);
     state.nodes.log.appendChild(row);
     scrollLog();
-    announce('eMMa pisze odpowiedź.');
+    announce('Emmbotek pisze odpowiedź.');
     return row;
   }
 
@@ -476,7 +476,7 @@
     if (state.avatar) state.avatar.preloadAll();
 
     global.setTimeout(function () { state.nodes.input.focus(); }, 60);
-    announce('Okno rozmowy z eMMą jest otwarte.');
+    announce('Okno rozmowy z Emmbotkiem jest otwarte.');
   }
 
   function close() {

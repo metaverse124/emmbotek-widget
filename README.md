@@ -1,9 +1,12 @@
-# eMMa AI — asystentka Prywatnego Studia Języków Obcych eMMa
+# Emmbotek — asystent Prywatnego Studia Języków Obcych eMMa
 
 Wdrożenie koncepcji z briefu: **Living Knowledge Base**, **Hybrid Retrieval**,
-**Contextual CTA Engine** i animowany awatar maskotki **Emmbotek** w 12 emocjach.
+**Contextual CTA Engine** i animowany awatar maskotki w 12 emocjach.
 
-eMMa nie jest chatbotem FAQ — to cyfrowa doradczyni, która zna aktualną treść strony
+**Nazewnictwo:** szkoła nazywa się *eMMa* (eMMa Studio), a jej cyfrowy asystent nazywa się
+**Emmbotek**. Asystent nigdy nie przedstawia się jako „eMMa” — to nazwa szkoły, nie jego imię.
+
+Emmbotek nie jest chatbotem FAQ — to cyfrowy doradca, który zna aktualną treść strony
 (także tę opublikowaną po wdrożeniu), prowadzi naturalną rozmowę, profiluje potrzeby
 i w odpowiednim momencie podaje jeden trafny przycisk prowadzący dokładnie tam, gdzie trzeba.
 
@@ -58,7 +61,7 @@ EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──
 
 ---
 
-## Awatar Emmbotek
+## Awatar Emmbotek (maskotka)
 
 24 pozy maskotki zostały wyizolowane z trzech arkuszy 3×3 skryptem
 `scripts/extract_avatars.py`:

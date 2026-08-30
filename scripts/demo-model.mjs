@@ -6,7 +6,7 @@
 import { detectIntent } from '../src/agent/intents.js';
 
 const REPLIES = {
-  GREETING: ['[GREETING] Dzień dobry! W czym mogę dziś pomóc?', []],
+  GREETING: ['[GREETING] Dzień dobry! Jestem Emmbotek, asystent eMMa Studio. W czym mogę pomóc?', []],
   PRICE: ['[NEUTRAL] Aktualne stawki różnią się w zależności od trybu i liczby osób w grupie, dlatego podaję je zawsze z cennika, a nie z pamięci. Zajrzy Pan/Pani do aktualnej tabeli?', [{ type: 'VIEW_PRICE' }]],
   CHILD: ['[SMILE] Dla dziewięciolatki najlepiej sprawdzają się zajęcia w kameralnej grupie rówieśników — dzieci uczą się tam przez zabawę i mówienie, a nie przez ciszę przy tablicy. Czy córka miała już wcześniej kontakt z angielskim?', [{ type: 'VIEW_FOR_CHILDREN' }]],
   COMPANY: ['[FOCUS] Dla firm układamy program pod realne sytuacje zawodowe zespołu — spotkania, mejle, prezentacje. Ilu pracowników miałoby uczestniczyć w szkoleniu?', [{ type: 'VIEW_FOR_COMPANIES' }]],
