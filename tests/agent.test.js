@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildSystemPrompt } from '../src/agent/systemPrompt.js';
-import { parseModelResponse } from '../src/agent/responseParser.js';
+import { parseModelResponse, salvageMessage } from '../src/agent/responseParser.js';
 import { trimHistory, sanitizeHistory, toGeminiContents } from '../src/agent/conversation.js';
 import { extractProfileSignals, mergeProfile, conversationStage, nextProfileQuestion, isProfileComplete } from '../src/agent/profile.js';
 import { normalizeEvent, aggregate } from '../src/server/handlers/analytics.js';
@@ -129,4 +129,27 @@ test('zdarzenia sa agregowane w liczniki, nie zapisywane pojedynczo', () => {
   const klucze = Object.keys(store);
   assert.equal(klucze.length, 1);
   assert.equal(store[klucze[0]], 2);
+});
+
+test('urwany JSON modelu nie trafia do uzytkownika jako nawiasy klamrowe', () => {
+  // Budzet tokenow obejmuje mysli modelu - przy ciasnym budzecie odpowiedz
+  // konczyla sie w polowie struktury, a caly surowy JSON szedl jako wiadomosc.
+  const urwany = '{"message":" Zajecia w grupie 4-8 osob kosztuja 3';
+  const wynik = parseModelResponse(urwany, {});
+  assert.equal(wynik.format, 'json-urwany');
+  assert.equal(wynik.message, 'Zajecia w grupie 4-8 osob kosztuja 3');
+  assert.deepEqual(wynik.cta, [], 'z urwanego JSON-a nie zgadujemy CTA');
+});
+
+test('ratowanie tresci respektuje znaki ucieczki i domkniete pole', () => {
+  assert.equal(salvageMessage('{"message": "Czesc! Jestem Emmbotek.", "cta": []}'), 'Czesc! Jestem Emmbotek.');
+  const ukosnik = String.fromCharCode(92);
+  const nowaLinia = String.fromCharCode(10);
+  assert.equal(
+    salvageMessage('{"message":"Linia 1' + ukosnik + 'nLinia 2"'),
+    'Linia 1' + nowaLinia + 'Linia 2',
+    'sekwencja ucieczki zamienia sie w prawdziwy znak',
+  );
+  assert.equal(salvageMessage('Zwykly tekst bez JSON-a'), null, 'czysty tekst obsluguje sciezka tekstowa');
+  assert.equal(salvageMessage('{"cta": []}'), null, 'brak pola message to brak tresci do uratowania');
 });

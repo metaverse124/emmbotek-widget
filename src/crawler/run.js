@@ -9,6 +9,7 @@ import { extractContent, removeBoilerplate } from './extract.js';
 import { classifyDocument } from './classify.js';
 import { chunkBlocks } from './chunk.js';
 import { contentHash, mergeDocuments } from '../knowledge/store.js';
+import { loadFeed } from './feed.js';
 import { buildCtaMap } from '../knowledge/ctaMap.js';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,6 +62,7 @@ export function pageToDocument(page, { lastmod = null } = {}) {
 export async function syncKnowledge(base, {
   fetchText = defaultFetchText,
   sitemapUrl = config.site.sitemap,
+  feedUrl = config.site.feed,
   maxPages = config.crawler.maxPages,
   delayMs = config.crawler.politenessDelayMs,
   minContentChars = 60,
@@ -70,6 +72,48 @@ export async function syncKnowledge(base, {
 } = {}) {
   const startedAt = Date.now();
   const deadline = maxDurationMs ? startedAt + maxDurationMs : Infinity;
+
+  // Kanal wiedzy ma pierwszenstwo: strona renderuje sie w przegladarce, wiec crawl HTML
+  // zwraca puste szkielety. Gdy kanal nie odpowiada albo jest pusty, schodzimy na crawl -
+  // to zapasowa droga na wypadek, gdyby wdrozenie strony poszlo bez kroku eksportu.
+  let feedError = null;
+  if (feedUrl) {
+    try {
+      const feed = await loadFeed(feedUrl, fetchText, { minContentChars, siteUrl: config.site.url });
+      onProgress({ phase: 'feed', total: feed.documents.length, url: feedUrl });
+
+      if (feed.documents.length) {
+        const { base: merged, report } = mergeDocuments(base, feed.documents, {
+          now,
+          archiveMissing: true,
+          knownUrls: feed.knownUrls,
+        });
+        merged.ctaMap = buildCtaMap(merged, { now: Date.parse(now) });
+        merged.generatedAt = merged.generatedAt ?? now;
+
+        return {
+          base: merged,
+          report: {
+            ...report,
+            source: 'feed',
+            feedUrl,
+            feedGeneratedAt: feed.generatedAt,
+            crawled: feed.documents.length,
+            failed: feed.skipped,
+            ctaTargets: Object.keys(merged.ctaMap).length,
+            timedOut: false,
+            blindRun: false,
+            remaining: 0,
+            durationMs: Date.now() - startedAt,
+          },
+        };
+      }
+      feedError = 'kanal wiedzy nie zawiera zadnego uzytecznego dokumentu';
+    } catch (error) {
+      feedError = error.message;
+    }
+    onProgress({ phase: 'feed-failed', reason: feedError, url: feedUrl });
+  }
 
   const entries = (await collectUrls(sitemapUrl, fetchText)).slice(0, maxPages);
   onProgress({ phase: 'sitemap', total: entries.length });
@@ -124,6 +168,8 @@ export async function syncKnowledge(base, {
     base: merged,
     report: {
       ...report,
+      source: 'crawl',
+      feedError,
       crawled: pages.length,
       failed: failures,
       ctaTargets: Object.keys(merged.ctaMap).length,

@@ -7,7 +7,11 @@ import { loadBase, saveBase } from '../src/knowledge/store.js';
 import { syncKnowledge } from '../src/crawler/run.js';
 
 const started = Date.now();
-console.log(`Synchronizacja wiedzy z ${config.site.sitemap}`);
+console.log(
+  config.site.feed
+    ? `Synchronizacja wiedzy z kanalu ${config.site.feed} (zapasowo: ${config.site.sitemap})`
+    : `Synchronizacja wiedzy z ${config.site.sitemap}`,
+);
 
 const base = await loadBase();
 
@@ -34,6 +38,13 @@ try {
 await saveBase(updated);
 
 console.log('\nRaport synchronizacji');
+console.log(`  zrodlo:      ${report.source === 'feed' ? 'kanal wiedzy strony' : 'crawl HTML'}`);
+if (report.source === 'feed' && report.feedGeneratedAt) {
+  console.log(`  kanal z:     ${report.feedGeneratedAt}`);
+}
+if (report.feedError) {
+  console.log(`  kanal odpadl: ${report.feedError}`);
+}
 console.log(`  nowe:        ${report.added.length}`);
 console.log(`  zmienione:   ${report.updated.length}`);
 console.log(`  bez zmian:   ${report.unchanged.length}`);

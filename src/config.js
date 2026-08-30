@@ -29,14 +29,34 @@ export const config = {
   site: {
     url: env('SITE_URL', 'https://emmastudio.pl'),
     sitemap: env('SITEMAP_URL', 'https://emmastudio.pl/sitemap.xml'),
+    /**
+     * Kanal wiedzy publikowany przez strone przy budowaniu (narzedzia/eksport-wiedzy.mjs
+     * w repozytorium emmastudiooo). Strona renderuje sie w przegladarce, wiec crawler HTTP
+     * widzi same puste szkielety - kanal oddaje tresc wprost ze zrodel prawdy.
+     * Pusta wartosc wylacza kanal i przywraca crawl HTML.
+     */
+    feed: env('KNOWLEDGE_FEED_URL', 'https://emmastudio.pl/wiedza.json'),
   },
   gemini: {
     apiKey: env('GEMINI_API_KEY', ''),
-    model: env('GEMINI_MODEL', 'gemini-2.5-flash'),
-    fallbackModel: env('GEMINI_FALLBACK_MODEL', 'gemini-flash-latest'),
+    /**
+     * gemini-2.5-flash zostal wycofany dla nowych kluczy - API odpowiada wtedy 404
+     * z podpowiedzia, zeby uzyc modelu 3.6. Sprawdzone 2026-08-30 na zywym kluczu:
+     * gemini-3.6-flash dziala, gemini-flash-latest wraca z 503 (przeciazenie),
+     * a gemini-flash-lite-latest odpowiada w ~1,5 s - stad taki zapasowy.
+     */
+    model: env('GEMINI_MODEL', 'gemini-3.6-flash'),
+    fallbackModel: env('GEMINI_FALLBACK_MODEL', 'gemini-flash-lite-latest'),
     endpoint: env('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models'),
     temperature: 0.6,
-    maxOutputTokens: 800,
+    /**
+     * Budzet obejmuje tez tokeny myslenia modelu. Przy 800 odpowiedz z pelnym
+     * kontraktem (tresc + CTA + profil) urywala sie w polowie JSON-a i do
+     * uzytkownika trafialy nawiasy klamrowe zamiast zdania.
+     */
+    maxOutputTokens: num('GEMINI_MAX_OUTPUT_TOKENS', 2048),
+    /** Poziom myslenia modeli 3.x: '' wylacza pole, 'low' skraca czas odpowiedzi o polowe. */
+    thinkingLevel: env('GEMINI_THINKING_LEVEL', 'low'),
     timeoutMs: num('GEMINI_TIMEOUT_MS', 20000),
   },
   security: {

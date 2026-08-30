@@ -14,13 +14,19 @@ export class GeminiError extends Error {
   }
 }
 
-const buildBody = ({ systemPrompt, contents, temperature, maxOutputTokens }) => ({
+const buildBody = ({ systemPrompt, contents, temperature, maxOutputTokens, thinkingLevel }) => ({
   systemInstruction: { parts: [{ text: systemPrompt }] },
   contents,
   generationConfig: {
     temperature,
     maxOutputTokens,
     responseMimeType: 'application/json',
+    // Modele 3.x "mysla" przed odpowiedzia, a tokeny myslenia licza sie do
+    // maxOutputTokens. Zmierzone na zywym kluczu (2026-08-30): bez ograniczenia
+    // 905 tokenow mysli i 7,4 s, przy poziomie "low" 249 tokenow i 3,4 s - przy
+    // identycznej dlugosci odpowiedzi. W widgecie czatu polowa czasu oczekiwania
+    // jest warta wiecej niz niewidoczna roznica w rozumowaniu.
+    ...(thinkingLevel ? { thinkingConfig: { thinkingLevel } } : {}),
   },
   safetySettings: [
     { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -86,11 +92,12 @@ export async function generate({
   fallbackModel = config.gemini.fallbackModel,
   temperature = config.gemini.temperature,
   maxOutputTokens = config.gemini.maxOutputTokens,
+  thinkingLevel = config.gemini.thinkingLevel,
   timeoutMs = config.gemini.timeoutMs,
 } = {}) {
   if (!apiKey) throw new GeminiError('Brak GEMINI_API_KEY po stronie serwera', { status: 500, kind: 'config' });
 
-  const body = buildBody({ systemPrompt, contents, temperature, maxOutputTokens });
+  const body = buildBody({ systemPrompt, contents, temperature, maxOutputTokens, thinkingLevel });
 
   try {
     const payload = await callModel(model, body, { fetchImpl, apiKey, timeoutMs });

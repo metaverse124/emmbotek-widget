@@ -19,9 +19,10 @@ identyfikatory niewidoczne dla użytkownika.
 ## Uruchamianie
 
 ```bash
-npm test          # 113 testów, node:test, zero zależności
+npm test          # 125 testów, node:test, zero zależności
 npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa atrapa modelu
-npm run crawl     # indeksowanie strony z sitemap.xml
+npm run crawl     # synchronizacja wiedzy z /wiedza.json (zapasowo crawl HTML)
+node --env-file=.env scripts/test-gemini.mjs   # rozmowa z prawdziwym Gemini
 npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/source/
 ```
 
@@ -47,6 +48,11 @@ npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/so
   nie jest autoryzacją — inaczej prompt injection zamienia przycisk w link phishingowy.
 - **Niepełny crawl nie archiwizuje stron**, których nie zdążył odwiedzić.
 - **Klucz Gemini nigdy nie trafia do przeglądarki.**
+- **Budżet `maxOutputTokens` obejmuje tokeny myślenia modelu.** Przy zbyt ciasnym
+  budżecie odpowiedź urywa się w połowie JSON-a. `salvageMessage` ratuje wtedy samą
+  treść, ale to bezpiecznik, nie rozwiązanie — budżet ma być z zapasem.
+- **Wiedza pochodzi z kanału `/wiedza.json`**, nie ze scrapingu HTML. Crawl HTML
+  został jako droga zapasowa na wypadek wdrożenia strony bez kroku eksportu.
 - **Teksty widoczne dla użytkownika piszemy z polskimi znakami.** Komentarze w kodzie są ASCII.
 - **Awatary ze znakiem wodnym modelu** (kafelki `r3c3` wszystkich pięciu arkuszy) są
   trwale wykluczone w `scripts/extract_avatars.py` — nie przywracać.
@@ -59,13 +65,16 @@ Działa i jest przetestowane: crawler, retrieval, agent, CTA Engine, bezpieczeń
 
 Do zrobienia przed produkcją:
 
-1. **Emmbotek nigdy nie rozmawiał z prawdziwym Gemini** — cała ścieżka modelu sprawdzona atrapą.
-2. **Brak realnej wiedzy — i crawler sam jej nie zdobędzie.** Pierwszy przebieg po
-   prawdziwej stronie (2026-08-30) zwrócił 39 niepowodzeń na 39 adresów: emmastudio.pl
-   to SPA, w HTML jest sam szkielet z meta. `data/knowledge.json` zostaje bazą zalążkową
-   do czasu decyzji o źródle treści — opcje w `docs/zrodlo-wiedzy.md`.
-3. **Brak trwałego magazynu** — pliki JSON nie przetrwają na serverless; blokuje cron.
-4. **Brak CI.**
-5. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).
-6. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
-7. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
+1. **Brak trwałego magazynu** — pliki JSON nie przetrwają na serverless; blokuje cron.
+   To jest teraz największa przeszkoda przed wdrożeniem.
+2. **Brak CI.**
+3. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).
+   Widać to w praktyce: przy pytaniu o gramatykę wśród źródeł ląduje `/statut`.
+4. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
+5. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
+6. **Kanał wiedzy nie jest jeszcze wdrożony** — `wiedza.json` powstaje przy budowaniu
+   strony, ale na LH.pl leży jeszcze stara paczka. Do czasu wdrożenia baza pochodzi
+   z lokalnego builda.
+
+Zamknięte 2026-08-30: rozmowa z prawdziwym Gemini (`gemini-3.6-flash`) oraz realna
+wiedza — 39 dokumentów i 81 fragmentów z kanału `/wiedza.json`.
