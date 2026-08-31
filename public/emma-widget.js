@@ -232,8 +232,32 @@
     if (state.nodes.live) state.nodes.live.textContent = text;
   }
 
+  /**
+   * Przewija rozmowe do najnowszej wiadomosci.
+   *
+   * Dwie rzeczy, ktore latwo tu przeoczyc:
+   *  - `behavior: auto` celowo, mimo `scroll-behavior: smooth` w stylach. Plynne
+   *    przewijanie animuje do pozycji policzonej w chwili wywolania, a tresc rosnie
+   *    jeszcze PO dopisaniu wiadomosci (przyciski CTA, zawijanie dlugiego tekstu).
+   *    Animacja konczyla sie wtedy kilkadziesiat pikseli nad ostatnia odpowiedzia
+   *    i uzytkownik musial doscrollowac reka.
+   *  - powtorzenie w nastepnej klatce lapie wzrost wysokosci po przelicznieu ukladu.
+   */
   function scrollLog() {
-    state.nodes.log.scrollTop = state.nodes.log.scrollHeight;
+    var log = state.nodes.log;
+    if (!log) return;
+    var doDolu = function () {
+      // Chwilowe wylaczenie plynnego przewijania inline. UWAGA: `behavior: 'auto'`
+      // w scrollTo NIE znaczy "natychmiast" - znaczy "uzyj wartosci z CSS", a tam
+      // stoi `scroll-behavior: smooth`. Nadpisanie stylem inline jest jedynym
+      // sposobem, ktory dziala tez w starszych przegladarkach bez `behavior: 'instant'`.
+      var poprzednie = log.style.scrollBehavior;
+      log.style.scrollBehavior = 'auto';
+      log.scrollTop = log.scrollHeight;
+      log.style.scrollBehavior = poprzednie;
+    };
+    doDolu();
+    if (typeof global.requestAnimationFrame === 'function') global.requestAnimationFrame(doDolu);
   }
 
   /** Minimalne formatowanie: akapity i lista punktowana. Zadnego HTML z modelu. */
@@ -474,6 +498,12 @@
       state.avatar.set('SMILE');
     }
     if (state.avatar) state.avatar.preloadAll();
+
+    // Rozmowa jest odtwarzana z localStorage, gdy panel jest jeszcze ukryty. Ukryty
+    // element ma zerowa wysokosc, wiec przewijanie przy dopisywaniu wiadomosci nie mialo
+    // czego przewijac - po otwarciu uzytkownik ogladal POCZATEK rozmowy zamiast ostatniej
+    // odpowiedzi. Przewijamy wiec jeszcze raz, gdy panel ma juz swoje wymiary.
+    scrollLog();
 
     global.setTimeout(function () { state.nodes.input.focus(); }, 60);
     announce('Okno rozmowy z Emmbotkiem jest otwarte.');
