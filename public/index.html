@@ -139,7 +139,7 @@
 <script src="/emma-widget.js"></script>
 <script>
   window.addEventListener('DOMContentLoaded', function () {
-    EmmaWidget.init({ assetsBase: '/', privacyUrl: null });
+    EmmaWidget.init({ assetsBase: '/', privacyUrl: 'https://emmastudio.pl/polityka-prywatnosci', rulesUrl: 'https://emmastudio.pl/polityka-prywatnosci#asystent-emmbotek' });
 
     var hero = new EmmbotekAvatar({ element: document.getElementById('hero-avatar'), basePath: '/avatars/', variant: '' });
     hero.load().then(function () { hero.set('GREETING'); });

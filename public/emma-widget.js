@@ -19,6 +19,9 @@
   var STORAGE_KEY = 'emma-ai-conversation-v1';
   // Zapamietujemy sam fakt otwarcia czatu, zeby zakladka nie pulsowala w nieskonczonosc.
   var KLUCZ_POZNANY = 'emmbotek-poznany-v1';
+  // Zgoda na zasady korzystania z asystenta. Wersja w kluczu jest celowa: gdy zasady
+  // sie zmienia, wystarczy podbic numer, zeby poprosic o zgode ponownie.
+  var KLUCZ_ZGODY = 'emmbotek-zgoda-v1';
   var CONSENT_KEY = 'emma-ai-rodo-ack-v1';
   var MAX_CHARS = 600;
 
@@ -32,6 +35,8 @@
     greeting: 'Dzień dobry! Jestem Emmbotek, asystent eMMa Studio. W czym mogę pomóc?',
     rodoNote: 'Ta rozmowa jest zapisywana lokalnie w Twojej przeglądarce, aby Emmbotek pamiętał jej kontekst.',
     privacyUrl: null,
+    /** Adres zasad korzystania z asystenta. Domyslnie ta sama strona, co polityka. */
+    rulesUrl: null,
     startChips: ['Kurs dla dziecka', 'Angielski dla mnie', 'Szkolenie dla firmy', 'Cennik', 'Lekcja próbna'],
     openOnLoad: false,
   };
@@ -147,17 +152,26 @@
     headText.appendChild(title);
     headText.appendChild(status);
 
-    var clearBtn = el('button', 'emma__icon-btn', '');
+    var clearBtn = el('button', 'emma__icon-btn emma__icon-btn--kosz', '');
     clearBtn.type = 'button';
     clearBtn.title = 'Wyczyść rozmowę';
     clearBtn.setAttribute('aria-label', 'Wyczyść rozmowę');
-    clearBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 7h12M9 7V5h6v2m-8 0 1 12h8l1-12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    // Kosz: wieko z uchwytem, korpus i dwie kreski w srodku. Grubsza kreska (2)
+    // i zaokraglone konce - przy 20 px cienka linia rozmywa sie na ekranach 1x.
+    clearBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M4 7h16"/>'
+      + '<path d="M9.5 7V5.4c0-.5.4-.9.9-.9h3.2c.5 0 .9.4.9.9V7"/>'
+      + '<path d="M6.4 7.9l.8 10.3c.05.7.63 1.3 1.35 1.3h6.9c.72 0 1.3-.6 1.35-1.3l.8-10.3"/>'
+      + '<path d="M10.3 11v5M13.7 11v5"/>'
+      + '</svg>';
 
     var closeBtn = el('button', 'emma__icon-btn', '');
     closeBtn.type = 'button';
     closeBtn.title = 'Zamknij okno rozmowy';
     closeBtn.setAttribute('aria-label', 'Zamknij okno rozmowy');
-    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'
+      + '<path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/>'
+      + '</svg>';
 
     header.appendChild(headAvatar);
     header.appendChild(headText);
@@ -207,6 +221,36 @@
       note.appendChild(privacy);
     }
 
+    /*
+      Bramka zgody. Pokazuje sie nad polem wpisywania, dopoki uzytkownik nie potwierdzi,
+      ze zna zasady korzystania z asystenta.
+
+      Swiadomie NIE jest to zaznaczone z gory pole - zgoda ma byc czynnoscia, a nie
+      przeoczeniem. Odnosnik do zasad otwiera sie w nowej karcie, zeby nie kasowac
+      rozpoczetej rozmowy.
+    */
+    var zgoda = el('div', 'emma__zgoda');
+    var zgodaId = 'emma-zgoda-' + Math.random().toString(36).slice(2, 8);
+    var zgodaPole = doc.createElement('input');
+    zgodaPole.type = 'checkbox';
+    zgodaPole.className = 'emma__zgoda-pole';
+    zgodaPole.id = zgodaId;
+
+    var zgodaEtykieta = doc.createElement('label');
+    zgodaEtykieta.className = 'emma__zgoda-tekst';
+    zgodaEtykieta.setAttribute('for', zgodaId);
+    zgodaEtykieta.appendChild(doc.createTextNode('Zapoznałem się z '));
+
+    var zasady = el('a', 'emma__link', 'zasadami korzystania z asystenta');
+    zasady.href = state.options.rulesUrl || state.options.privacyUrl || '#';
+    zasady.target = '_blank';
+    zasady.rel = 'noopener';
+    zgodaEtykieta.appendChild(zasady);
+    zgodaEtykieta.appendChild(doc.createTextNode(' i akceptuję je.'));
+
+    zgoda.appendChild(zgodaPole);
+    zgoda.appendChild(zgodaEtykieta);
+
     var live = el('p', 'emma__sr');
     live.setAttribute('role', 'status');
     live.setAttribute('aria-live', 'polite');
@@ -214,6 +258,7 @@
     panel.appendChild(header);
     panel.appendChild(log);
     panel.appendChild(chips);
+    panel.appendChild(zgoda);
     panel.appendChild(form);
     panel.appendChild(note);
     panel.appendChild(live);
@@ -226,6 +271,7 @@
       root: root, tab: tab, tabAvatar: tabAvatar, panel: panel, header: header,
       headAvatar: headAvatar, log: log, chips: chips, form: form, input: input,
       counter: counter, send: send, close: closeBtn, clear: clearBtn, live: live,
+      zgoda: zgoda, zgodaPole: zgodaPole,
     };
   }
 
@@ -388,14 +434,36 @@
     } catch (error) { /* telemetria nigdy nie psuje UX */ }
   }
 
+  /**
+   * Czy adres CTA wolno wstawic w href.
+   *
+   * Serwer juz to sprawdza - cel musi byc w mapie CTA zbudowanej przy indeksowaniu
+   * albo byc znanym telefonem/mailem szkoly. To jest DRUGA warstwa, na wypadek gdyby
+   * tamta kiedys przepuscila cos wiecej. Bez niej `javascript:` w odpowiedzi modelu
+   * wykonalby sie po klknieciu w przycisk, ktory wyglada jak zwykly odnosnik.
+   *
+   * Dozwolone: adresy wzgledne (/oferta), https, tel: i mailto:. Nic wiecej -
+   * w szczegolnosci zadnego javascript: i data:.
+   */
+  function bezpiecznyCel(adres) {
+    var cel = String(adres || '').trim();
+    if (!cel) return null;
+    if (cel.charAt(0) === '/' && cel.charAt(1) !== '/') return cel;   // //host to juz obcy adres
+    if (/^https:\/\//i.test(cel)) return cel;
+    if (/^(tel:\+?[0-9\s-]{6,20}|mailto:[^\s<>"']{3,120})$/i.test(cel)) return cel;
+    return null;
+  }
+
   function renderCtas(row, ctas, meta) {
     if (!ctas || !ctas.length) return;
     var box = el('div', 'emma__ctas');
     ctas.slice(0, 2).forEach(function (cta, index) {
+      var cel = bezpiecznyCel(cta.target);
+      if (!cel) return;                 // przycisk bez wiarygodnego celu po prostu nie powstaje
       var button = el('a', 'emma__cta');
-      button.href = cta.target;
+      button.href = cel;
       button.style.setProperty('--emma-cta-delay', (index * 90) + 'ms');
-      if (/^https?:/i.test(cta.target) && cta.target.indexOf(global.location.origin) !== 0) {
+      if (/^https:/i.test(cel) && cel.indexOf(global.location.origin) !== 0) {
         button.target = '_blank';
         button.rel = 'noopener';
       }
@@ -431,6 +499,9 @@
     list.forEach(function (label) {
       var chip = el('button', 'emma__chip', label);
       chip.type = 'button';
+      // Chipsy tez wysylaja pytanie, wiec przed zgoda musza byc nieaktywne -
+      // inaczej byloby wejscie do rozmowy z pominieciem bramki.
+      chip.disabled = !czyZgoda();
       chip.addEventListener('click', function () {
         state.nodes.chips.innerHTML = '';
         send(label);
@@ -455,6 +526,17 @@
   function send(text) {
     var message = String(text || '').trim().slice(0, MAX_CHARS);
     if (!message || state.busy) return;
+
+    // Ostatnia linia obrony: nawet gdyby ktos ominal zablokowane pole (Enter,
+    // konsola, chipsy), bez zgody rozmowa sie nie zaczyna.
+    if (!czyZgoda()) {
+      state.nodes.zgoda.hidden = false;
+      state.nodes.zgoda.setAttribute('data-uwaga', 'true');
+      global.setTimeout(function () { state.nodes.zgoda.removeAttribute('data-uwaga'); }, 1200);
+      state.nodes.zgodaPole.focus();
+      announce('Aby rozpocząć rozmowę, potwierdź zasady korzystania z asystenta.');
+      return;
+    }
 
     state.busy = true;
     state.nodes.send.disabled = true;
@@ -546,6 +628,46 @@
     try { global.localStorage.setItem(KLUCZ_POZNANY, '1'); } catch (error) { /* ignorujemy */ }
   }
 
+  /* ------------------------------------------------------------------ zgoda */
+
+  function czyZgoda() {
+    try { return global.localStorage.getItem(KLUCZ_ZGODY) === '1'; }
+    catch (error) { return false; }
+  }
+
+  /**
+   * Blokuje rozmowe do czasu potwierdzenia zasad.
+   *
+   * Blokujemy pole i przycisk, a nie tylko chowamy bramke - inaczej wystarczyloby
+   * wcisnac Enter, zeby wyslac wiadomosc mimo braku zgody. Chipsy tez sa wylaczone,
+   * bo one rowniez wysylaja pytanie.
+   */
+  function odswiezZgode() {
+    var zgodzil = czyZgoda();
+    state.zgoda = zgodzil;
+    state.nodes.zgoda.hidden = zgodzil;
+    state.nodes.input.disabled = !zgodzil;
+    state.nodes.send.disabled = !zgodzil || state.busy;
+    state.nodes.input.placeholder = zgodzil
+      ? 'Napisz wiadomość…'
+      : 'Najpierw potwierdź zasady powyżej';
+    state.nodes.chips.setAttribute('data-zablokowane', zgodzil ? 'false' : 'true');
+    var chipsy = state.nodes.chips.querySelectorAll('button');
+    for (var i = 0; i < chipsy.length; i += 1) chipsy[i].disabled = !zgodzil;
+  }
+
+  function zapiszZgode(zgodzil) {
+    try {
+      if (zgodzil) global.localStorage.setItem(KLUCZ_ZGODY, '1');
+      else global.localStorage.removeItem(KLUCZ_ZGODY);
+    } catch (error) { /* tryb prywatny - zgoda obowiazuje do konca sesji */ }
+    odswiezZgode();
+    if (zgodzil) {
+      announce('Zasady potwierdzone. Można pisać.');
+      state.nodes.input.focus();
+    }
+  }
+
   function open() {
     if (state.open) return;
     state.open = true;
@@ -626,6 +748,8 @@
     restoreHistory();
     // Kto juz raz rozmawial, nie potrzebuje zaproszenia - zakladka nie pulsuje.
     if (czyPoznany()) state.nodes.root.setAttribute('data-poznany', 'true');
+    state.nodes.zgodaPole.checked = czyZgoda();
+    odswiezZgode();
     updateCounter();
 
     if (global.EmmbotekAvatar) {
@@ -652,6 +776,9 @@
     state.nodes.form.addEventListener('submit', function (event) {
       event.preventDefault();
       send(state.nodes.input.value);
+    });
+    state.nodes.zgodaPole.addEventListener('change', function (event) {
+      zapiszZgode(event.target.checked);
     });
     state.nodes.input.addEventListener('input', updateCounter);
     state.nodes.input.addEventListener('keydown', function (event) {
