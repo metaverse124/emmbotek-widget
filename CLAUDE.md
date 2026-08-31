@@ -24,6 +24,7 @@ npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa a
 npm run crawl     # synchronizacja wiedzy z /wiedza.json (zapasowo crawl HTML)
 node --env-file=.env scripts/test-gemini.mjs     # rozmowa z prawdziwym Gemini
 node --env-file=.env scripts/test-supabase.mjs   # sprawdzenie bazy (sprząta po sobie)
+npm run luki      # przegląd: o co pytają ludzie, a czego nie ma na stronie
 npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/source/
 ```
 

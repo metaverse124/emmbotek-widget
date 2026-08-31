@@ -101,7 +101,16 @@ decyzję w jednym zapytaniu, z resetem okna po jego wygaśnięciu.
 
 ## Jak odczytać luki wiedzy
 
-W SQL Editor:
+Najprościej z konsoli:
+
+```bash
+npm run luki
+```
+
+Wypisze pytania od dwóch wystąpień w górę, z intencjami i datami. `npm run luki -- --od 1`
+pokaże też pojedyncze, a `-- --wszystkie` również te już oznaczone jako uzupełnione.
+
+To samo w SQL Editor:
 
 ```sql
 select pytanie, liczba, intencje, ostatni_raz
