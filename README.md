@@ -212,8 +212,18 @@ Równoległe zapytania dzielą jedno pobranie, więc zimny start nie wysyła kil
 `data/knowledge.json` jest **kopią zapasową, nie stanem** — nic go nie zapisuje w czasie
 pracy. Odświeża się go ręcznie przez `npm run crawl` i wgrywa razem z paczką.
 
-Trwałego magazynu potrzebują natomiast **luki wiedzy i analityka kliknięć** — to jedyne
-dane, które narastają i których strona nie publikuje. Rząd wielkości: poniżej 10 MB rocznie.
+## Co trafia do bazy danych
+
+Trwałego zapisu potrzebują tylko dane, które **narastają** i których strona nie publikuje:
+luki wiedzy, liczniki CTA i wspólne okno limitu zapytań. Obsługuje je Supabase
+(`src/storage/supabase.js`, migracja w `sql/001-emmbotek.sql`) — rząd wielkości poniżej
+10 MB rocznie, czyli około 2% darmowego limitu.
+
+Liczniki podbijają funkcje w Postgresie, a nie aplikacja: instancji funkcji serverless jest
+wiele i odczyt-modyfikacja-zapis gubiłby zdarzenia. Bez skonfigurowanego Supabase Emmbotek
+działa normalnie — traci tylko pamięć o tych trzech rzeczach.
+
+Pełna instrukcja, wraz z tym, co i dlaczego jest anonimizowane: **[docs/supabase.md](docs/supabase.md)**.
 
 ## Bezpieczeństwo
 

@@ -97,6 +97,16 @@ export const config = {
      */
     maxDurationMs: num('CRAWLER_MAX_DURATION_MS', 25000),
   },
+  /**
+   * Trwaly zapis tego, czego strona nie publikuje: luki wiedzy, liczniki CTA, okna limitu.
+   * Bez konfiguracji Emmbotek dziala dalej - traci tylko pamiec o tych trzech rzeczach.
+   * Klucz service_role omija RLS, wiec nigdy nie moze trafic do przegladarki.
+   */
+  supabase: {
+    url: env('SUPABASE_URL', ''),
+    serviceKey: env('SUPABASE_SERVICE_ROLE_KEY', ''),
+    timeoutMs: num('SUPABASE_TIMEOUT_MS', 4000),
+  },
   knowledge: {
     path: env('KNOWLEDGE_PATH', 'data/knowledge.json'),
     /**

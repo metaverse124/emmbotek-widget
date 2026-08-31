@@ -19,10 +19,11 @@ identyfikatory niewidoczne dla użytkownika.
 ## Uruchamianie
 
 ```bash
-npm test          # 134 testy, node:test, zero zależności
+npm test          # 148 testów, node:test, zero zależności
 npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa atrapa modelu
 npm run crawl     # synchronizacja wiedzy z /wiedza.json (zapasowo crawl HTML)
-node --env-file=.env scripts/test-gemini.mjs   # rozmowa z prawdziwym Gemini
+node --env-file=.env scripts/test-gemini.mjs     # rozmowa z prawdziwym Gemini
+node --env-file=.env scripts/test-supabase.mjs   # sprawdzenie bazy (sprząta po sobie)
 npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/source/
 ```
 
@@ -36,6 +37,7 @@ npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/so
 | Agent | `src/agent/` — System Prompt, emocje, intencje, profil, CTA Engine, ochrona przed injection |
 | Model | `src/gemini/client.js` |
 | Serwer | `src/server/` + `api/` (funkcje serverless) |
+| Magazyn | `src/storage/supabase.js` + `sql/001-emmbotek.sql` — tylko luki, CTA i limity |
 | Frontend | `public/emma-widget.{js,css}`, `public/emmbotek-avatar.js` |
 | Awatar | `public/avatars/` — 40 poz + `manifest.json` |
 
@@ -47,7 +49,11 @@ npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/so
 - **Cel CTA musi pochodzić z mapy zbudowanej przy indeksowaniu.** Sam schemat `https://`
   nie jest autoryzacją — inaczej prompt injection zamienia przycisk w link phishingowy.
 - **Niepełny crawl nie archiwizuje stron**, których nie zdążył odwiedzić.
-- **Klucz Gemini nigdy nie trafia do przeglądarki.**
+- **Klucz Gemini nigdy nie trafia do przeglądarki.** Tak samo klucz `service_role`
+  Supabase — omija RLS, więc jest równie wrażliwy.
+- **Do bazy trafiają tylko dane, które narastają** — luki, liczniki, limity. Wiedza
+  o ofercie nigdy; ta pochodzi z kanału strony.
+- **Adres IP nie opuszcza serwera.** Kluczem limitu jest jego solony skrót.
 - **Budżet `maxOutputTokens` obejmuje tokeny myślenia modelu.** Przy zbyt ciasnym
   budżecie odpowiedź urywa się w połowie JSON-a. `salvageMessage` ratuje wtedy samą
   treść, ale to bezpiecznik, nie rozwiązanie — budżet ma być z zapasem.
@@ -74,8 +80,9 @@ Do zrobienia przed produkcją:
 1. **Brak CI.**
 2. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).
    Widać to w praktyce: przy pytaniu o gramatykę wśród źródeł ląduje `/statut`.
-3. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
-   Ten sam problem co przy lukach wiedzy: potrzebny stan wspólny dla instancji.
+3. **Migracja SQL nie została jeszcze wykonana** — `sql/001-emmbotek.sql` czeka na
+   wklejenie do wybranego projektu Supabase. Do tego czasu Emmbotek działa bez bazy:
+   luki i liczniki przepadają, a limit liczy się w pamięci instancji.
 4. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
 5. **Czas odpowiedzi.** Typowo 3–7 s, ale `gemini-3.6-flash` potrafi skoczyć do 25 s.
    Próg przełączenia na model lite skrócony do 9 s, więc najgorszy przypadek to ~13 s.
@@ -85,9 +92,9 @@ Do zrobienia przed produkcją:
    strony, ale na LH.pl leży jeszcze stara paczka. Do czasu wdrożenia baza pochodzi
    z lokalnego builda.
 
-Zostają też **luki wiedzy i analityka kliknięć** — jedyne dane, które naprawdę muszą
-gdzieś trwale wylądować, bo narastają i strona ich nie publikuje. To jest właściwy
-i jedyny powód, żeby sięgnąć po Supabase (rząd wielkości: poniżej 10 MB rocznie).
+Zamknięte 2026-08-31: **warstwa trwałego zapisu**. Luki wiedzy, liczniki CTA i wspólny
+limit zapytań idą do Supabase przez `src/storage/supabase.js`; liczniki podbijają funkcje
+w Postgresie, żeby równoległe instancje nie gubiły zdarzeń. Instrukcja: `docs/supabase.md`.
 
 Zamknięte 2026-08-30: rozmowa z prawdziwym Gemini (`gemini-3.6-flash`) oraz realna
 wiedza — 39 dokumentów i 81 fragmentów z kanału `/wiedza.json`.

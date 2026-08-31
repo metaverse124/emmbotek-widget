@@ -48,7 +48,19 @@ export function aggregate(store, event) {
   return next;
 }
 
-export function createAnalyticsHandler({ read = async () => ({}), write = async () => {} } = {}) {
+/**
+ * @param {object} deps
+ * @param {Function} deps.record  zapis paczki zdarzen wprost do magazynu (Supabase).
+ *   Gdy podany, ma pierwszenstwo nad read/write - baza sama agreguje liczniki, wiec
+ *   rownolegle instancje nie nadpisuja sobie wzajemnie odczytanego stanu.
+ * @param {Function} deps.read    odczyt zagregowanego stanu (wariant plikowy)
+ * @param {Function} deps.write   zapis zagregowanego stanu (wariant plikowy)
+ */
+export function createAnalyticsHandler({
+  record = null,
+  read = async () => ({}),
+  write = async () => {},
+} = {}) {
   return async function analyticsHandler(req, res) {
     const { ok: originOk, origin } = checkOrigin(req);
     applyCors(res, originOk ? origin : null);
@@ -66,9 +78,13 @@ export function createAnalyticsHandler({ read = async () => ({}), write = async 
     if (!accepted.length) return json(res, 202, { accepted: 0 });
 
     try {
-      let store = await read();
-      for (const event of accepted) store = aggregate(store, event);
-      await write(store);
+      if (record) {
+        await record(accepted);
+      } else {
+        let store = await read();
+        for (const event of accepted) store = aggregate(store, event);
+        await write(store);
+      }
     } catch { /* telemetria nigdy nie psuje UX */ }
 
     return json(res, 202, { accepted: accepted.length });

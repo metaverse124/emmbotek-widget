@@ -61,7 +61,7 @@ export function createChatHandler({
     if (req.method !== 'POST') return json(res, 405, { error: 'Dozwolona jest wylacznie metoda POST.' });
     if (!originOk) return json(res, 403, { error: 'Niedozwolone zrodlo zadania.' });
 
-    const rate = limiter.consume(clientKey(req));
+    const rate = await limiter.consume(clientKey(req));
     if (!rate.allowed) {
       return json(res, 429, {
         emotion: systemEmotion.overloaded,

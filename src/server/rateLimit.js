@@ -1,7 +1,13 @@
 /**
- * Rate limiting po IP (sekcja 36 briefu) - sliding window w pamieci procesu.
- * Na produkcji z wieloma instancjami warto podmienic store na Redis/KV;
- * interfejs `consume` pozostaje ten sam.
+ * Rate limiting po IP (sekcja 36 briefu).
+ *
+ * Dwa warianty o tym samym interfejsie `consume(klucz)`:
+ *   - w pamieci procesu (domyslny, wystarcza lokalnie i na VPS),
+ *   - wspoldzielony przez Supabase (produkcja serverless, gdzie instancji jest wiele).
+ *
+ * Wariant wspoldzielony ma zabezpieczenie: gdy baza nie odpowiada, schodzi na limiter
+ * w pamieci zamiast przepuszczac wszystko. Awaria bazy nie moze otworzyc bramy na osciez,
+ * ale tez nie moze zablokowac rozmowy - kazde zapytanie kosztuje wywolanie Gemini.
  */
 import config from '../config.js';
 
@@ -42,3 +48,35 @@ export function createRateLimiter({
 }
 
 export const defaultLimiter = createRateLimiter();
+
+/**
+ * Limiter wspoldzielony miedzy instancjami. Okno liczy Postgres jednym zapytaniem
+ * (`emmbotek_sprawdz_limit`), wiec rownolegle instancje nie licza kazda swojego.
+ *
+ * @param {object} deps
+ * @param {object} deps.store     magazyn z metoda `sprawdzLimit`
+ * @param {object} deps.fallback  limiter uzywany, gdy baza nie odpowiada
+ * @param {Function} deps.onError wolane przy bledzie bazy (diagnostyka)
+ */
+export function createSharedRateLimiter({
+  store,
+  fallback = createRateLimiter(),
+  windowMs = config.security.rateLimit.windowMs,
+  max = config.security.rateLimit.max,
+  onError = () => {},
+} = {}) {
+  return {
+    async consume(key) {
+      if (!store?.skonfigurowany) return fallback.consume(key);
+      try {
+        return await store.sprawdzLimit(key, windowMs, max);
+      } catch (error) {
+        // Baza padla - liczymy dalej lokalnie. Limit bedzie luzniejszy niz zakladamy
+        // (kazda instancja ma swoj), ale nadal istnieje.
+        onError(error);
+        return fallback.consume(key);
+      }
+    },
+    reset() { fallback.reset(); },
+  };
+}
