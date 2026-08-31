@@ -192,11 +192,12 @@
     form.appendChild(field);
     form.appendChild(send);
 
+    // Stopka informacyjna: sama tresc RODO i odnosnik do polityki prywatnosci.
+    // "Wyczysc rozmowe" bylo tu drugi raz - ta sama czynnosc ma juz ikone kosza
+    // w naglowku panelu, a dwa wejscia do jednej akcji w tak malym oknie tylko
+    // rozpraszaly. Zostaje ikona, bo jest zawsze widoczna, takze przy dlugiej rozmowie.
     var note = el('p', 'emma__note');
-    note.appendChild(doc.createTextNode(state.options.rodoNote + ' '));
-    var clearLink = el('button', 'emma__link', 'Wyczyść rozmowę');
-    clearLink.type = 'button';
-    note.appendChild(clearLink);
+    note.appendChild(doc.createTextNode(state.options.rodoNote));
     if (state.options.privacyUrl) {
       var privacy = el('a', 'emma__link', 'Polityka prywatności');
       privacy.href = state.options.privacyUrl;
@@ -224,7 +225,7 @@
     state.nodes = {
       root: root, tab: tab, tabAvatar: tabAvatar, panel: panel, header: header,
       headAvatar: headAvatar, log: log, chips: chips, form: form, input: input,
-      counter: counter, send: send, close: closeBtn, clear: clearBtn, clearLink: clearLink, live: live,
+      counter: counter, send: send, close: closeBtn, clear: clearBtn, live: live,
     };
   }
 
@@ -648,7 +649,6 @@
     state.nodes.tab.addEventListener('click', function () { state.open ? close() : open(); });
     state.nodes.close.addEventListener('click', close);
     state.nodes.clear.addEventListener('click', clearConversation);
-    state.nodes.clearLink.addEventListener('click', clearConversation);
     state.nodes.form.addEventListener('submit', function (event) {
       event.preventDefault();
       send(state.nodes.input.value);

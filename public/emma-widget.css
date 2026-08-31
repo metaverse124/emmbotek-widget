@@ -384,12 +384,39 @@
 
 /* ------------------------------------------------------------- nota RODO */
 
+/*
+   Stopka informacyjna RODO.
+
+   `text-align: justify` wyrownuje pelne wiersze do obu marginesow, a
+   `text-align-last: center` srodkuje ostatni - bez tego drugiego ostatnia linijka
+   zostawalaby przyklejona do lewej i caly blok wygladalby na przypadkowo urwany.
+
+   Tlo to delikatny gradient od kremu szalwiowego marki do bieli panelu: oddziela
+   note od pola wpisywania, nie robiac z niej osobnego, ciezkiego pasa.
+*/
 .emma__note {
+  position: relative;
   margin: 0;
-  padding: 0 14px 12px;
+  padding: 12px 18px 13px;
   font-size: 11.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--emma-text-soft);
+  text-align: justify;
+  text-align-last: center;
+  -moz-text-align-last: center;
+  background: linear-gradient(180deg, #ECF2E6 0%, #F6FAF3 55%, var(--emma-surface) 100%);
+}
+
+/* Separator: wlosowa kreska, ktora gasnie po bokach - twarda linia na cala
+   szerokosc dzielilaby panel na dwie czesci, a to ma byc tylko delikatne odciecie. */
+.emma__note::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6D6C3 22%, #C6D6C3 78%, transparent);
 }
 
 .emma__link {
