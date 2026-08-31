@@ -10,10 +10,21 @@ export const json = (res, status, payload, headers = {}) => {
 };
 
 /** Allowlista Origin (sekcja 36 briefu). */
-export function checkOrigin(req, allowed = config.security.allowedOrigins) {
+export function checkOrigin(req, allowed = config.security.allowedOrigins, {
+  requireOrigin = config.security.requireOrigin,
+  allowLocalhost = process.env.NODE_ENV !== 'production',
+} = {}) {
   const origin = req.headers?.origin;
-  if (!origin) return { ok: true, origin: null }; // np. curl / server-to-server
-  const ok = allowed.includes(origin) || (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin));
+
+  // Brak naglowka Origin to nie przegladarka - to curl albo skrypt. Przy tresci
+  // `application/json` przegladarka ZAWSZE wysyla Origin (wymusza to preflight),
+  // wiec odrzucenie takiego zadania nie psuje widgetu, a zamyka droge, ktora
+  // omijala allowliste i palila limit Gemini bez zadnej domeny do zablokowania.
+  // Lokalnie zostawiamy furtke, zeby dalo sie diagnozowac curl-em.
+  if (!origin) return { ok: !requireOrigin, origin: null };
+
+  const ok = allowed.includes(origin)
+    || (allowLocalhost && /^http:\/\/localhost(:\d+)?$/.test(origin));
   return { ok, origin };
 }
 

@@ -83,3 +83,27 @@ test('powtarzajace sie pytanie zwieksza licznik luki wiedzy', () => {
   assert.equal(rejestr[0].frequency, 4);
   assert.equal(topGaps(rejestr, { minFrequency: 3 }).length, 1);
 });
+
+test('zadanie bez naglowka Origin jest odrzucane na produkcji', () => {
+  // Przegladarka przy tresci application/json ZAWSZE wysyla Origin (wymusza to preflight),
+  // wiec brak naglowka znaczy "to nie widget". Wpuszczanie takich zadan omijalo allowliste
+  // i pozwalalo palic limit Gemini bez zadnej domeny do zablokowania.
+  const dozwolone = ['https://emmastudio.pl'];
+  const bezOrigin = { headers: {} };
+
+  assert.equal(checkOrigin(bezOrigin, dozwolone, { requireOrigin: true }).ok, false);
+  assert.equal(checkOrigin(bezOrigin, dozwolone, { requireOrigin: false }).ok, true, 'lokalnie curl ma dzialac');
+});
+
+test('allowlista domen odrzuca podszywanie sie pod domene szkoly', () => {
+  const dozwolone = ['https://emmastudio.pl', 'https://www.emmastudio.pl'];
+  const opcje = { requireOrigin: true, allowLocalhost: false };
+  const sprawdz = (origin) => checkOrigin({ headers: { origin } }, dozwolone, opcje).ok;
+
+  assert.equal(sprawdz('https://emmastudio.pl'), true);
+  assert.equal(sprawdz('https://www.emmastudio.pl'), true);
+  assert.equal(sprawdz('https://emmastudio.pl.zlosliwa.example'), false, 'przedrostek to nie ta sama domena');
+  assert.equal(sprawdz('http://emmastudio.pl'), false, 'http to nie https');
+  assert.equal(sprawdz('https://obca.example'), false);
+  assert.equal(sprawdz('http://localhost:4173'), false, 'na produkcji localhost nie wchodzi');
+});

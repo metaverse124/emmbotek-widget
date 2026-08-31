@@ -13,6 +13,13 @@ const num = (key, fallback) => {
   return Number.isFinite(value) ? value : fallback;
 };
 
+/** '1', 'true', 'tak' -> true; '0', 'false', 'nie' -> false; brak wartosci -> domyslna. */
+const bool = (key, fallback) => {
+  const value = String(env(key, '')).toLowerCase();
+  if (!value) return fallback;
+  return ['1', 'true', 'tak', 'yes'].includes(value);
+};
+
 const list = (key, fallback = []) => {
   const value = env(key, '');
   return value ? value.split(',').map((item) => item.trim()).filter(Boolean) : fallback;
@@ -69,6 +76,12 @@ export const config = {
   },
   security: {
     allowedOrigins: list('ALLOWED_ORIGINS', ['https://emmastudio.pl', 'https://www.emmastudio.pl']),
+    /**
+     * Czy zadanie bez naglowka Origin ma byc odrzucane. Domyslnie tak na produkcji:
+     * przegladarka przy tresci JSON zawsze wysyla Origin, wiec brak naglowka znaczy
+     * "to nie widget". Lokalnie zostaje furtka na diagnostyke curl-em.
+     */
+    requireOrigin: bool('REQUIRE_ORIGIN', process.env.NODE_ENV === 'production'),
     syncToken: env('SYNC_TOKEN', ''),
     /**
      * Vercel Cron wysyla `Authorization: Bearer $CRON_SECRET`, a nie nasz SYNC_TOKEN.

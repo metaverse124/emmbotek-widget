@@ -8,3 +8,4 @@ node_modules/
 # runtime (generowane w czasie dzialania)
 data/knowledge-gaps.json
 data/analytics.json
+dist-widget/
