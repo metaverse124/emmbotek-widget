@@ -70,9 +70,9 @@
     "FUNNY": {
       "label": "żart",
       "frames": [
-        "pose-05-r2c2.png",
         "pose-04-r3c1.png",
-        "pose-01-r2c3.png",
+        "pose-03-r1c1.png",
+        "pose-04-r3c2.png",
         "pose-03-r1c3.png",
         "pose-04-r1c1.png"
       ],
@@ -94,7 +94,8 @@
       "label": "ciekawość",
       "frames": [
         "pose-01-r2c2.png",
-        "pose-02-r2c1.png"
+        "pose-02-r2c1.png",
+        "pose-05-r2c2.png"
       ],
       "fps": 1.2,
       "motion": "tilt",
@@ -140,7 +141,8 @@
         "pose-05-r1c2.png",
         "pose-04-r3c2.png",
         "pose-02-r3c1.png",
-        "pose-03-r3c1.png"
+        "pose-03-r3c1.png",
+        "pose-01-r2c3.png"
       ],
       "fps": 0.9,
       "motion": "sway",
