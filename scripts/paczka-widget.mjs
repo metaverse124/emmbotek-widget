@@ -24,7 +24,9 @@ const KORZEN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ZRODLO = path.join(KORZEN, 'public');
 const CEL = path.join(KORZEN, 'dist-widget');
 
-const PLIKI = ['emma-widget.js', 'emma-widget.css', 'emmbotek-avatar.js'];
+// kursor-lapka.svg jest wskazywany ze srodka emma-widget.css adresem wzglednym,
+// wiec musi lezec obok arkusza - inaczej klikalne elementy traca kursor.
+const PLIKI = ['emma-widget.js', 'emma-widget.css', 'emmbotek-avatar.js', 'kursor-lapka.svg'];
 
 await rm(CEL, { recursive: true, force: true });
 await mkdir(path.join(CEL, 'avatars'), { recursive: true });

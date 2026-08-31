@@ -17,6 +17,8 @@
 
   var doc = global.document;
   var STORAGE_KEY = 'emma-ai-conversation-v1';
+  // Zapamietujemy sam fakt otwarcia czatu, zeby zakladka nie pulsowala w nieskonczonosc.
+  var KLUCZ_POZNANY = 'emmbotek-poznany-v1';
   var CONSENT_KEY = 'emma-ai-rodo-ack-v1';
   var MAX_CHARS = 600;
 
@@ -277,9 +279,60 @@
     });
   }
 
+  /**
+   * Miniatura maskotki przy odpowiedzi - z mina tej konkretnej wypowiedzi.
+   *
+   * Awatar w naglowku pokazuje tylko emocje ostatniej odpowiedzi i po chwili wraca
+   * do NEUTRAL. Przewijajac rozmowe w gore nie widac juz, z jakim nastawieniem
+   * Emmbotek mowil wczesniej. Miniatura zostaje przy swojej wiadomosci na stale.
+   *
+   * Celowo statyczna klatka, nie animacja: przy dziesieciu odpowiedziach dziesiec
+   * animacji naraz zjadaloby bateria i rozpraszalo od tresci.
+   */
+  function messageAvatar(emotion) {
+    if (!state.avatar || !state.avatar.manifest) return null;
+    var definition = state.avatar.definition(emotion) || state.avatar.definition('NEUTRAL');
+    if (!definition || !definition.frames || !definition.frames.length) return null;
+
+    var img = doc.createElement('img');
+    img.className = 'emma__msg-avatar';
+    img.src = state.avatar.frameUrl(definition.frames[0]);
+    img.alt = '';                    // dekoracja - tresc niesie sama wiadomosc
+    img.setAttribute('aria-hidden', 'true');
+    img.loading = 'lazy';
+    img.width = 44;
+    img.height = 44;
+    if (definition.label) img.title = 'Emmbotek: ' + definition.label;
+    return img;
+  }
+
+  /**
+   * Historia rozmowy jest odtwarzana zanim manifest emocji zdazy sie wczytac,
+   * wiec te wiadomosci nie dostaly jeszcze miniatur. Uzupelniamy je, gdy manifest
+   * juz jest - bez tego po odswiezeniu strony maskotka znikala z wczesniejszych odpowiedzi.
+   */
+  function uzupelnijMiniatury() {
+    // bez selektora :has() - starsze przegladarki rzucaja na nim wyjatkiem,
+    // a warunek nizej i tak odsiewa wiersze, ktore miniature juz maja
+    var wiersze = state.nodes.log.querySelectorAll('.emma__row--emma');
+    for (var i = 0; i < wiersze.length; i += 1) {
+      var wiersz = wiersze[i];
+      if (wiersz.querySelector('.emma__msg-avatar')) continue;
+      var mini = messageAvatar(wiersz.getAttribute('data-emocja') || 'NEUTRAL');
+      if (mini) wiersz.insertBefore(mini, wiersz.firstChild);
+    }
+  }
+
   function addMessage(role, text, options) {
     options = options || {};
     var row = el('div', 'emma__row emma__row--' + (role === 'user' ? 'user' : 'emma'));
+
+    if (role !== 'user') {
+      row.setAttribute('data-emocja', options.emotion || 'NEUTRAL');
+      var mini = messageAvatar(options.emotion || 'NEUTRAL');
+      if (mini) row.appendChild(mini);
+    }
+
     var bubble = el('div', 'emma__bubble');
     renderText(bubble, text);
     row.appendChild(bubble);
@@ -291,6 +344,9 @@
         role: role === 'user' ? 'user' : 'model',
         text: text,
         intent: options.intent,
+        // emocje zapisujemy, zeby po odtworzeniu rozmowy miny przy wiadomosciach
+        // byly te same, a nie wszystkie neutralne
+        emotion: options.emotion,
         at: new Date().toISOString(),
       });
       saveConversation();
@@ -478,6 +534,17 @@
 
   /* ------------------------------------------------------------ otwarcie/zamk */
 
+  /** Czy uzytkownik juz kiedys otworzyl czat (wtedy zakladka nie pulsuje). */
+  function czyPoznany() {
+    try { return global.localStorage.getItem(KLUCZ_POZNANY) === '1'; }
+    catch (error) { return false; }   // tryb prywatny albo zablokowana pamiec
+  }
+
+  function zapamietajPoznanie() {
+    state.nodes.root.setAttribute('data-poznany', 'true');
+    try { global.localStorage.setItem(KLUCZ_POZNANY, '1'); } catch (error) { /* ignorujemy */ }
+  }
+
   function open() {
     if (state.open) return;
     state.open = true;
@@ -505,6 +572,9 @@
     // odpowiedzi. Przewijamy wiec jeszcze raz, gdy panel ma juz swoje wymiary.
     scrollLog();
 
+    // Zaproszenie spelnilo swoje zadanie - zakladka przestaje pulsowac na stale.
+    zapamietajPoznanie();
+
     global.setTimeout(function () { state.nodes.input.focus(); }, 60);
     announce('Okno rozmowy z Emmbotkiem jest otwarte.');
   }
@@ -522,18 +592,26 @@
   }
 
   function updateCounter() {
-    var length = state.nodes.input.value.length;
+    var wartosc = state.nodes.input.value;
+    var length = wartosc.length;
     state.nodes.counter.textContent = length + '/' + MAX_CHARS;
+    // Licznik ma sens dopiero, gdy zaczyna byc ciasno. Przy pustym polu "0/600"
+    // niczego nie wnosilo, a zabieralo miejsce tekstowi.
+    state.nodes.counter.setAttribute('data-widoczny', length > MAX_CHARS * 0.7 ? 'true' : 'false');
     state.nodes.counter.setAttribute('data-warn', length > MAX_CHARS - 60 ? 'true' : 'false');
+    state.nodes.send.setAttribute('data-pusty', wartosc.trim() ? 'false' : 'true');
     state.nodes.input.style.height = 'auto';
-    state.nodes.input.style.height = Math.min(96, state.nodes.input.scrollHeight) + 'px';
+    state.nodes.input.style.height = Math.min(120, state.nodes.input.scrollHeight) + 'px';
   }
 
   /* -------------------------------------------------------------------- init */
 
   function restoreHistory() {
     state.conversation.messages.forEach(function (message) {
-      addMessage(message.role === 'user' ? 'user' : 'model', message.text, { save: false });
+      addMessage(message.role === 'user' ? 'user' : 'model', message.text, {
+        save: false,
+        emotion: message.emotion,
+      });
     });
   }
 
@@ -545,6 +623,9 @@
 
     build();
     restoreHistory();
+    // Kto juz raz rozmawial, nie potrzebuje zaproszenia - zakladka nie pulsuje.
+    if (czyPoznany()) state.nodes.root.setAttribute('data-poznany', 'true');
+    updateCounter();
 
     if (global.EmmbotekAvatar) {
       state.avatar = new global.EmmbotekAvatar({
@@ -552,6 +633,7 @@
         basePath: state.options.assetsBase + 'avatars/',
       });
       state.avatar.load().then(function () {
+        uzupelnijMiniatury();
         // ta sama maskotka na side tabie - druga, lekka instancja tylko z poza NEUTRAL
         var tabAvatar = new global.EmmbotekAvatar({
           element: state.nodes.tabAvatar,
