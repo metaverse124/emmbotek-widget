@@ -1,16 +1,25 @@
 /**
- * /api/sync - synchronizacja Living Knowledge Base.
- * Uruchamiana: przy deployu, cyklicznie (cron) oraz opcjonalnie webhookiem CMS po publikacji tresci.
- * Chroniona sekretem przekazanym w naglowku `x-sync-token` albo `Authorization: Bearer`.
- * Akceptujemy SYNC_TOKEN (webhook CMS, wywolanie reczne) oraz CRON_SECRET (Vercel Cron,
- * ktory wysyla wlasny sekret w naglowku Authorization).
+ * /api/sync - wymuszenie odswiezenia wiedzy i podglad jej stanu.
+ *
+ * Wiedza pochodzi z kanalu `/wiedza.json` publikowanego przez strone i jest trzymana
+ * w pamieci instancji przez kilka minut (knowledge/provider.js). Ten endpoint nie
+ * indeksuje wiec juz niczego i nie zapisuje na dysk - kasuje pamiec podreczna, pobiera
+ * kanal od nowa i oddaje raport. Przydaje sie w dwoch sytuacjach:
+ *
+ *   1. webhook po publikacji tresci w CMS - zeby nie czekac na wygasniecie pamieci,
+ *   2. diagnostyka po wdrozeniu - widac, czy strona oddaje kanal i ile z niego weszlo.
+ *
+ * Cron nie jest potrzebny: pamiec i tak wygasa sama, a instancja bez ruchu i tak umiera.
+ *
+ * Chroniony sekretem w naglowku `x-sync-token` albo `Authorization: Bearer`.
+ * Akceptujemy SYNC_TOKEN oraz CRON_SECRET.
  */
 import { timingSafeEqual } from 'node:crypto';
 
 import config from '../../config.js';
 import { json } from '../http.js';
-import { loadBase, saveBase } from '../../knowledge/store.js';
-import { syncKnowledge } from '../../crawler/run.js';
+import { knowledgeProvider } from '../../knowledge/provider.js';
+import { activeDocuments } from '../../knowledge/store.js';
 
 /** Porownanie odporne na atak czasowy. */
 const secretsMatch = (a, b) => {
@@ -30,13 +39,12 @@ const tokenFrom = (req) => {
 
 /**
  * @param {object} deps
- * @param {() => string[]} deps.secrets  akceptowane sekrety; domyslnie czytane z konfiguracji
+ * @param {object} deps.provider        dostawca wiedzy (wstrzykiwalny na potrzeby testow)
+ * @param {() => string[]} deps.secrets akceptowane sekrety; domyslnie czytane z konfiguracji
  *   przy kazdym zadaniu (wstrzykiwalne na potrzeby testow)
  */
 export function createSyncHandler({
-  sync = syncKnowledge,
-  load = loadBase,
-  save = saveBase,
+  provider = knowledgeProvider,
   secrets = () => [config.security.syncToken, config.security.cronSecret],
 } = {}) {
   return async function syncHandler(req, res) {
@@ -55,32 +63,24 @@ export function createSyncHandler({
 
     const started = Date.now();
     try {
-      const base = await load();
-      const { base: updated, report } = await sync(base);
-      await save(updated);
+      provider.reset();
+      const base = await provider.get();
+      const status = provider.status();
+      const aktywne = activeDocuments(base);
+
       return json(res, 200, {
-        ok: true,
+        ok: status.source === 'kanal',
         durationMs: Date.now() - started,
-        documents: updated.stats.documents,
-        chunks: updated.stats.chunks,
-        added: report.added.length,
-        updated: report.updated.length,
-        unchanged: report.unchanged.length,
-        archived: report.archived.length,
-        failed: report.failed.length,
-        ctaTargets: report.ctaTargets,
+        source: status.source,
+        feedUrl: status.feedUrl,
+        documents: aktywne.length,
+        chunks: aktywne.reduce((suma, doc) => suma + doc.chunks.length, 0),
+        ctaTargets: Object.keys(base.ctaMap ?? {}).length,
+        // Kopia z paczki znaczy, ze strona nie oddala kanalu - mowimy to wprost,
+        // zamiast raportowac sukces na starej wiedzy.
+        error: status.lastError,
       });
     } catch (error) {
-      // Na platformach serverless katalog aplikacji jest tylko do odczytu, a /tmp znika
-      // razem z instancja. Mowimy to wprost, zamiast zwracac goly blad zapisu.
-      if (['EROFS', 'EACCES', 'EPERM'].includes(error.code)) {
-        return json(res, 500, {
-          ok: false,
-          error: 'Nie mozna zapisac bazy wiedzy: system plikow jest tylko do odczytu. '
-            + 'Skonfiguruj trwaly magazyn (KV / blob / baza danych) i podmien load/save w api/sync.js.',
-          code: error.code,
-        });
-      }
       return json(res, 500, { ok: false, error: error.message });
     }
   };

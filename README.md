@@ -17,7 +17,7 @@ i w odpowiednim momencie podaje jeden trafny przycisk prowadzący dokładnie tam
 ```bash
 npm test          # 93 testy (node:test, bez zależności)
 npm run dev       # http://localhost:3000 — demo widgetu i galeria awatara
-npm run crawl     # synchronizacja wiedzy z sitemap.xml
+npm run crawl     # odswiezenie kopii zapasowej data/knowledge.json z kanalu
 npm run avatars   # ponowne wycięcie poz maskotki z arkuszy źródłowych
 ```
 
@@ -32,10 +32,13 @@ Konfiguracja: skopiuj `.env.example` do `.env` i uzupełnij `GEMINI_API_KEY`, `A
 ## Architektura
 
 ```
-EMMAstudio.pl ──sitemap/webhook──▶ CRAWLER ──▶ EKSTRAKCJA ──▶ NORMALIZACJA
-                                                                  │
-                                                          WYKRYCIE ZMIAN (hash)
-                                                                  ▼
+EMMAstudio.pl ──/wiedza.json──▶ KANAL WIEDZY ──▶ PAMIEC INSTANCJI (5 min)
+   (budowany razem                                        │
+    ze strona)                                            │  awaria strony?
+                                                          │  ostatnia dobra wiedza,
+                                                          │  a w ostatecznosci kopia
+                                                          │  z paczki
+                                                          ▼
                                                      LIVING KNOWLEDGE BASE
                                                                   │
                                                    RETRIEVAL (keyword+metadane)
@@ -167,34 +170,50 @@ Odpowiedź:
 }
 ```
 
-`POST /api/sync` — synchronizacja wiedzy. Akceptuje sekret w nagłówku `x-sync-token`
-albo `Authorization: Bearer`. Uznawane są dwa: `SYNC_TOKEN` (webhook CMS, wywołanie ręczne)
-oraz `CRON_SECRET` — ten drugi wysyła Vercel Cron, więc **bez ustawienia `CRON_SECRET`
-codzienny cron dostanie 401 i baza wiedzy nigdy się nie odświeży**.
+`POST /api/sync` — wymuszenie odświeżenia wiedzy i podgląd jej stanu. Akceptuje sekret
+w nagłówku `x-sync-token` albo `Authorization: Bearer` (`SYNC_TOKEN` lub `CRON_SECRET`).
 
-Przebieg crawla jest ograniczony budżetem czasu (`CRAWLER_MAX_DURATION_MS`, domyślnie 25 s),
-żeby zmieścić się w limicie funkcji serverless. Po przekroczeniu budżetu zapisywane jest to,
-co zdążył zebrać, a raport zawiera `timedOut: true` i `remaining`. **Niepełny przebieg nigdy
-nie archiwizuje stron, których nie zdążył odwiedzić** — inaczej przerwany cron wyczyściłby
-całą bazę wiedzy. Archiwizowane są wyłącznie adresy, które faktycznie zniknęły z sitemapy;
-strona, która chwilowo zwróciła błąd, pozostaje aktywna.
+Endpoint **nic nie indeksuje i nic nie zapisuje** — kasuje pamięć podręczną instancji
+i pobiera kanał od nowa. Przydaje się jako webhook po publikacji treści w CMS-ie
+(żeby nie czekać na wygaśnięcie pamięci) oraz do diagnostyki po wdrożeniu: w odpowiedzi
+widać `source` (`kanal` albo `plik`), liczbę dokumentów i ewentualny błąd.
+Pole `ok` jest `true` **tylko wtedy, gdy wiedza przyszła ze strony** — praca na kopii
+z paczki nie jest sukcesem, o którym można milczeć.
 
 `POST /api/analytics` — anonimowe liczniki `cta_impression` / `cta_click`.
 Nie przyjmuje IP, sessionId ani treści rozmowy; z adresu zostaje sama ścieżka.
 
 ---
 
-## Trwałość bazy wiedzy — do rozstrzygnięcia przed produkcją
+## Skąd bierze się wiedza — i dlaczego bez bazy danych
 
-`loadBase`/`saveBase` zapisują plik JSON pod `KNOWLEDGE_PATH`. To działa lokalnie i na VPS,
-ale **nie na platformach serverless**: katalog aplikacji jest tam tylko do odczytu, a `/tmp`
-znika razem z instancją. W efekcie `/api/sync` albo zwróci błąd zapisu (z jawnym komunikatem
-i kodem `EROFS`), albo zaktualizuje wiedzę tylko dla jednej, chwilowej instancji.
+Strona publikuje przy budowaniu cały swój stan jako `/wiedza.json`: 132 kB, **42 kB po
+kompresji**, pobranie w kilkadziesiąt milisekund. Przy takich rozmiarach magazyn jest
+zbędny — instancja pobiera kanał i trzyma go w pamięci przez `KNOWLEDGE_CACHE_TTL_MS`
+(domyślnie 5 minut).
 
-Docelowo podmień `load`/`save` przekazywane do `createSyncHandler` (oraz odczyt w `api/chat.js`)
-na trwały magazyn — Vercel KV, Vercel Blob, Supabase albo zwykłą bazę. Interfejs jest wąski:
-dwie funkcje `() => Promise<base>` i `(base) => Promise<void>`, więc adapter to kilkanaście linii.
-Wybór magazynu to decyzja infrastrukturalna, dlatego nie jest zaszyty w kodzie.
+Wychodzi lepiej niż z magazynem i cronem:
+
+- wiedza jest **świeższa** — minuty zamiast doby,
+- nie ma crona, który może po cichu przestać chodzić,
+- nie ma stanu, który może się rozjechać z treścią strony.
+
+Emmbotek nigdy nie zostaje bez wiedzy — najwyżej z wiedzą starszą. Trzy poziomy:
+
+1. świeży kanał ze strony,
+2. ostatni udany kanał z pamięci — podawany dalej nawet po wygaśnięciu, bo stara cena
+   jest lepsza niż brak odpowiedzi (kolejna próba dopiero po 30 s, żeby nie dobijać się
+   do strony przy każdym zapytaniu),
+3. kopia `data/knowledge.json` wgrana razem z aplikacją — ratuje pierwszą rozmowę po
+   starcie instancji, gdyby strona akurat nie odpowiadała.
+
+Równoległe zapytania dzielą jedno pobranie, więc zimny start nie wysyła kilku żądań naraz.
+
+`data/knowledge.json` jest **kopią zapasową, nie stanem** — nic go nie zapisuje w czasie
+pracy. Odświeża się go ręcznie przez `npm run crawl` i wgrywa razem z paczką.
+
+Trwałego magazynu potrzebują natomiast **luki wiedzy i analityka kliknięć** — to jedyne
+dane, które narastają i których strona nie publikuje. Rząd wielkości: poniżej 10 MB rocznie.
 
 ## Bezpieczeństwo
 

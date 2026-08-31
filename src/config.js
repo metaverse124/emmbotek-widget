@@ -99,6 +99,12 @@ export const config = {
   },
   knowledge: {
     path: env('KNOWLEDGE_PATH', 'data/knowledge.json'),
+    /**
+     * Jak dlugo instancja trzyma kanal wiedzy w pamieci. Kanal wazy 42 kB po kompresji,
+     * wiec odswiezenie jest tanie - 5 minut daje wiedze swiezsza niz jakikolwiek cron,
+     * a strone odpytujemy najwyzej 12 razy na godzine na instancje.
+     */
+    cacheTtlMs: num('KNOWLEDGE_CACHE_TTL_MS', 300000),
     gapsPath: env('GAPS_PATH', 'data/knowledge-gaps.json'),
     analyticsPath: env('ANALYTICS_PATH', 'data/analytics.json'),
     /** Po ilu dniach tresc terminowa (NEWS/EVENT/PRICE) uznawana jest za "do weryfikacji". */

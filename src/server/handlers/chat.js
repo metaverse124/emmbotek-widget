@@ -15,7 +15,7 @@ import { validateChatRequest } from '../validate.js';
 import { detectIntent } from '../../agent/intents.js';
 import { extractProfileSignals, mergeProfile, conversationStage } from '../../agent/profile.js';
 import { retrieve, hasUsableKnowledge } from '../../knowledge/retrieval.js';
-import { loadBase } from '../../knowledge/store.js';
+import { knowledgeProvider } from '../../knowledge/provider.js';
 import { buildKnowledgeBlock, guardUserMessage } from '../../agent/injectionGuard.js';
 import { buildSystemPrompt } from '../../agent/systemPrompt.js';
 import { trimHistory, toGeminiContents, countTurns } from '../../agent/conversation.js';
@@ -32,17 +32,13 @@ const OVERLOADED_MESSAGE =
 const FALLBACK_MESSAGE =
   'Przepraszam, chwilowo nie mogę pobrać odpowiedzi. Proszę spróbować za moment albo napisać do sekretariatu.';
 
-let cachedBase = null;
-let cachedAt = 0;
-const BASE_TTL_MS = 60_000;
-
+/**
+ * Wiedza pochodzi z kanalu publikowanego przez strone, trzymanego w pamieci instancji.
+ * Zadnego magazynu ani crona - szczegoly i zabezpieczenia w knowledge/provider.js.
+ */
 async function getBase(loader) {
   if (loader) return loader();
-  const now = Date.now();
-  if (cachedBase && now - cachedAt < BASE_TTL_MS) return cachedBase;
-  cachedBase = await loadBase();
-  cachedAt = now;
-  return cachedBase;
+  return knowledgeProvider.get();
 }
 
 /** Handler niezalezny od frameworka: (req, res) w stylu Node/Vercel. */

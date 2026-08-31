@@ -3,9 +3,6 @@
   "functions": {
     "api/*.js": { "runtime": "nodejs20.x", "maxDuration": 30 }
   },
-  "crons": [
-    { "path": "/api/sync", "schedule": "0 3 * * *" }
-  ],
   "headers": [
     {
       "source": "/avatars/(.*)",

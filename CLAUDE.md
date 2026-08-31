@@ -19,7 +19,7 @@ identyfikatory niewidoczne dla użytkownika.
 ## Uruchamianie
 
 ```bash
-npm test          # 125 testów, node:test, zero zależności
+npm test          # 134 testy, node:test, zero zależności
 npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa atrapa modelu
 npm run crawl     # synchronizacja wiedzy z /wiedza.json (zapasowo crawl HTML)
 node --env-file=.env scripts/test-gemini.mjs   # rozmowa z prawdziwym Gemini
@@ -51,8 +51,14 @@ npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/so
 - **Budżet `maxOutputTokens` obejmuje tokeny myślenia modelu.** Przy zbyt ciasnym
   budżecie odpowiedź urywa się w połowie JSON-a. `salvageMessage` ratuje wtedy samą
   treść, ale to bezpiecznik, nie rozwiązanie — budżet ma być z zapasem.
-- **Wiedza pochodzi z kanału `/wiedza.json`**, nie ze scrapingu HTML. Crawl HTML
-  został jako droga zapasowa na wypadek wdrożenia strony bez kroku eksportu.
+- **Wiedza pochodzi z kanału `/wiedza.json`**, nie ze scrapingu HTML i nie z bazy
+  danych. Instancja trzyma kanał w pamięci (`knowledge/provider.js`), a Emmbotek nigdy
+  nie zostaje bez wiedzy — najwyżej z wiedzą starszą: świeży kanał → ostatni udany
+  kanał z pamięci → kopia `data/knowledge.json` wgrana razem z aplikacją.
+- **`data/knowledge.json` jest kopią zapasową, nie stanem.** Nic go nie zapisuje
+  w czasie pracy. Odświeża się go ręcznie przez `npm run crawl`.
+- **`/api/sync` nie indeksuje.** Kasuje pamięć podręczną i pobiera kanał od nowa —
+  do webhooka z CMS-a i do diagnostyki po wdrożeniu. Cron nie jest potrzebny.
 - **Teksty widoczne dla użytkownika piszemy z polskimi znakami.** Komentarze w kodzie są ASCII.
 - **Awatary ze znakiem wodnym modelu** (kafelki `r3c3` wszystkich pięciu arkuszy) są
   trwale wykluczone w `scripts/extract_avatars.py` — nie przywracać.
@@ -65,20 +71,28 @@ Działa i jest przetestowane: crawler, retrieval, agent, CTA Engine, bezpieczeń
 
 Do zrobienia przed produkcją:
 
-1. **Brak trwałego magazynu** — pliki JSON nie przetrwają na serverless; blokuje cron.
-   To jest teraz największa przeszkoda przed wdrożeniem.
-2. **Brak CI.**
-3. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).
+1. **Brak CI.**
+2. **Brak embeddings** — retrieval działa na słowach kluczowych (etap 2 z briefu).
    Widać to w praktyce: przy pytaniu o gramatykę wśród źródeł ląduje `/statut`.
-4. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
-5. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
-6. **Czas odpowiedzi.** Typowo 3–7 s, ale `gemini-3.6-flash` potrafi skoczyć do 25 s.
+3. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
+   Ten sam problem co przy lukach wiedzy: potrzebny stan wspólny dla instancji.
+4. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
+5. **Czas odpowiedzi.** Typowo 3–7 s, ale `gemini-3.6-flash` potrafi skoczyć do 25 s.
    Próg przełączenia na model lite skrócony do 9 s, więc najgorszy przypadek to ~13 s.
    Prawdziwym lekarstwem jest strumieniowanie odpowiedzi — pierwsze słowa od razu,
    reszta w trakcie. To robota do widgetu, nie do backendu.
-7. **Kanał wiedzy nie jest jeszcze wdrożony** — `wiedza.json` powstaje przy budowaniu
+6. **Kanał wiedzy nie jest jeszcze wdrożony** — `wiedza.json` powstaje przy budowaniu
    strony, ale na LH.pl leży jeszcze stara paczka. Do czasu wdrożenia baza pochodzi
    z lokalnego builda.
 
+Zostają też **luki wiedzy i analityka kliknięć** — jedyne dane, które naprawdę muszą
+gdzieś trwale wylądować, bo narastają i strona ich nie publikuje. To jest właściwy
+i jedyny powód, żeby sięgnąć po Supabase (rząd wielkości: poniżej 10 MB rocznie).
+
 Zamknięte 2026-08-30: rozmowa z prawdziwym Gemini (`gemini-3.6-flash`) oraz realna
 wiedza — 39 dokumentów i 81 fragmentów z kanału `/wiedza.json`.
+
+Zamknięte 2026-08-31: **magazyn wiedzy okazał się niepotrzebny.** Skoro strona
+publikuje cały swój stan jako 42 kB po kompresji, instancja pobiera go w 67 ms
+i trzyma w pamięci przez 5 minut. Wychodzi świeżej niż z cronem, bez magazynu
+i bez stanu, który mógłby się rozjechać z treścią strony.

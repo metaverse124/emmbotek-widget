@@ -85,3 +85,21 @@ w grę.
 Niezależnie od wyboru: treści dodawane przez panel `/emmadmin` (tabele `site_content`
 i `blog_posts` w Supabase) powinny trafiać do bazy wiedzy odczytem wprost z Supabase —
 inaczej „żywa" jest tylko do najbliższego wdrożenia strony.
+
+---
+
+## Rozstrzygnięcie (2026-08-31)
+
+Wybrana została droga **A**. Strona ma `narzedzia/eksport-wiedzy.mjs`, kanał trafia
+do `dist/wiedza.json`, a `.htaccess` dostał imienny wyjątek, bo reguła blokująca
+wszystkie pliki `.json` odpowiadałaby błędem 403.
+
+Przy okazji odpadła cała warstwa, którą planowaliśmy dobudować. Kanał waży 42 kB po
+kompresji i pobiera się w 67 ms, więc **magazyn wiedzy okazał się niepotrzebny**:
+instancja trzyma kanał w pamięci przez pięć minut i tyle. Nie ma crona, nie ma bazy,
+nie ma stanu do rozjechania się z treścią strony — a wiedza jest świeższa, niż byłaby
+przy dobowym cronie. Szczegóły w `src/knowledge/provider.js`.
+
+Droga **B** (prerendering do pełnego HTML-a) nadal ma sens — nie dla asystenta, tylko
+dla SEO strony. Dziś Google widzi 14 podstron i 25 wpisów blogowych jako puste szkielety.
+To osobna robota, niezależna od Emmbotka.

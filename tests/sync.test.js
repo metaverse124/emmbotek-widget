@@ -9,9 +9,7 @@ import { createSyncHandler } from '../src/server/handlers/sync.js';
 
 /** Sekrety wstrzykujemy, zeby nie zalezec od kolejnosci ladowania konfiguracji. */
 const handlerWith = ({ syncToken = '', cronSecret = '' } = {}) => createSyncHandler({
-  sync: fakeSync,
-  load: loadEmpty,
-  save: noopSave,
+  provider: atrapaDostawcy(),
   secrets: () => [syncToken, cronSecret],
 });
 
@@ -22,9 +20,16 @@ async function call(handler, { headers = {}, method = 'POST' } = {}) {
   return res;
 }
 
-const fakeSync = async (base) => ({ base, report: { added: [], updated: [], unchanged: [], archived: [], failed: [], ctaTargets: 0 } });
-const noopSave = async () => {};
-const loadEmpty = async () => emptyBase();
+/** Dostawca-atrapa: nie rusza sieci, oddaje pusta baze i melduje zrodlo. */
+const atrapaDostawcy = (source = 'kanal') => {
+  let resetow = 0;
+  return {
+    reset: () => { resetow += 1; },
+    get: async () => emptyBase(),
+    status: () => ({ source, lastError: null, feedUrl: 'https://emmastudio.pl/wiedza.json' }),
+    resetow: () => resetow,
+  };
+};
 
 test('naglowek x-sync-token z SYNC_TOKEN przechodzi (webhook CMS)', async () => {
   const res = await call(handlerWith({ syncToken: 'tajne-123' }), {
@@ -146,4 +151,24 @@ test('podstrona faktycznie usunieta ze strony jest archiwizowana', async () => {
   assert.equal(report.archived.length, 1);
   const archived = after.documents.find((item) => item.sourceUrl.endsWith('strona-1/'));
   assert.equal(archived.status, 'archived');
+});
+
+test('udane odswiezenie kasuje pamiec podreczna i melduje zrodlo', async () => {
+  const provider = atrapaDostawcy('kanal');
+  const handler = createSyncHandler({ provider, secrets: () => ['tajne-123'] });
+  const res = await call(handler, { headers: { 'x-sync-token': 'tajne-123' } });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.json.ok, true);
+  assert.equal(res.json.source, 'kanal');
+  assert.equal(provider.resetow(), 1, 'odswiezenie musi wyrzucic stara pamiec');
+});
+
+test('gdy strona nie oddala kanalu, endpoint nie melduje sukcesu', async () => {
+  // Wiedza z kopii w paczce dziala, ale to nie jest stan, o ktorym mamy milczec.
+  const provider = atrapaDostawcy('plik');
+  const handler = createSyncHandler({ provider, secrets: () => ['tajne-123'] });
+  const res = await call(handler, { headers: { 'x-sync-token': 'tajne-123' } });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.json.ok, false, 'ok=true tylko wtedy, gdy wiedza przyszla ze strony');
+  assert.equal(res.json.source, 'plik');
 });
