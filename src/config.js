@@ -57,7 +57,15 @@ export const config = {
     maxOutputTokens: num('GEMINI_MAX_OUTPUT_TOKENS', 2048),
     /** Poziom myslenia modeli 3.x: '' wylacza pole, 'low' skraca czas odpowiedzi o polowe. */
     thinkingLevel: env('GEMINI_THINKING_LEVEL', 'low'),
-    timeoutMs: num('GEMINI_TIMEOUT_MS', 20000),
+    /**
+     * Prog przelaczenia na model zapasowy, a nie realny limit cierpliwosci.
+     * Zmierzone 2026-08-31: gemini-3.6-flash odpowiada zwykle w 5-7 s, ale potrafi
+     * skoczyc do 25 s; gemini-flash-lite-latest trzyma sie 1-2 s przy odpowiedziach
+     * tej samej jakosci (te same ceny, te same CTA). Przy progu 20 s jedna odpowiedz
+     * w tescie zajela 23 s - w widgecie czatu to wieczność. Przy 9 s najgorszy
+     * przypadek to okolo 11 s, a typowa odpowiedz nadal idzie z mocniejszego modelu.
+     */
+    timeoutMs: num('GEMINI_TIMEOUT_MS', 9000),
   },
   security: {
     allowedOrigins: list('ALLOWED_ORIGINS', ['https://emmastudio.pl', 'https://www.emmastudio.pl']),

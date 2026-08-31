@@ -72,7 +72,11 @@ Do zrobienia przed produkcją:
    Widać to w praktyce: przy pytaniu o gramatykę wśród źródeł ląduje `/statut`.
 4. **Rate limit w pamięci procesu** — nie działa przy wielu instancjach.
 5. **Widget nie stał jeszcze na prawdziwej stronie.** emmastudio.pl to React + Vite.
-6. **Kanał wiedzy nie jest jeszcze wdrożony** — `wiedza.json` powstaje przy budowaniu
+6. **Czas odpowiedzi.** Typowo 3–7 s, ale `gemini-3.6-flash` potrafi skoczyć do 25 s.
+   Próg przełączenia na model lite skrócony do 9 s, więc najgorszy przypadek to ~13 s.
+   Prawdziwym lekarstwem jest strumieniowanie odpowiedzi — pierwsze słowa od razu,
+   reszta w trakcie. To robota do widgetu, nie do backendu.
+7. **Kanał wiedzy nie jest jeszcze wdrożony** — `wiedza.json` powstaje przy budowaniu
    strony, ale na LH.pl leży jeszcze stara paczka. Do czasu wdrożenia baza pochodzi
    z lokalnego builda.
 
