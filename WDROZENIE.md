@@ -26,11 +26,15 @@ Szczegóły i odpowiedzi na „co tam trafia": [docs/supabase.md](docs/supabase.
 
 ## Etap 2 — backend na Vercelu
 
-1. Zaloguj się na Vercel kontem, na którym stoją Twoje projekty.
+1. Zaloguj się na Vercel na konto **proartemeble's projects** — to samo, na którym
+   stoją `zdrowie-ai-proxy` i `proarte-wycena`.
 2. **Add New → Project → Import Git Repository** → wskaż `metaverse124/emmbotek-widget`.
-3. Framework Preset: **Other**. Build Command: **zostaw puste**. Output Directory:
-   **zostaw puste**. Projekt nie ma kroku budowania — to funkcje serverless plus pliki
-   statyczne.
+   Import z gita (a nie wgranie plików) jest tu ważny: każdy push na `main` będzie
+   wtedy sam się wdrażał.
+3. Framework Preset: **Other**. Build Command i Output Directory **zostaw puste** —
+   projekt nie ma kroku budowania, a katalog statyczny wskazuje `vercel.json`
+   (`outputDirectory: public`). Bez tego adres główny dawałby 404, bo Vercel serwowałby
+   korzeń repozytorium zamiast `public/`.
 4. Przed pierwszym wdrożeniem wejdź w **Environment Variables** i dodaj:
 
 | Zmienna | Wartość | Uwagi |
@@ -45,11 +49,30 @@ Szczegóły i odpowiedzi na „co tam trafia": [docs/supabase.md](docs/supabase.
 | `SUPABASE_URL` | z etapu 1 | pominąć, jeśli bez bazy |
 | `SUPABASE_SERVICE_ROLE_KEY` | z etapu 1 | pominąć, jeśli bez bazy |
 
+Gotowe wartości dla `TOKEN_SECRET` i `SYNC_TOKEN` czekają w pliku
+`sekrety-do-vercela.txt` w katalogu projektu (jest poza repozytorium — po wklejeniu
+możesz go skasować). `GEMINI_API_KEY` weź z aistudio.google.com.
+
 5. **Deploy**. Zapisz adres, który dostaniesz — np. `https://emmbotek-widget.vercel.app`.
 
-**Sprawdzenie etapu:** otwórz w przeglądarce `https://TWOJ-ADRES.vercel.app/` — powinna
-pokazać się strona demo z maskotką. Jeśli widzisz listę plików albo błąd 404, wróć do
-punktu 3 (Output Directory musi być puste).
+**Sprawdzenie etapu** — trzy rzeczy pod rząd:
+
+```bash
+curl -s https://TWOJ-ADRES.vercel.app/api/token
+```
+
+Powinno wrócić `{"token":"…","wymagany":true}`. Jeśli `"wymagany":false`, nie doszedł
+`TOKEN_SECRET`.
+
+```bash
+curl -s -o /dev/null -w "%{http_code}
+" -X POST -H "content-type: application/json"   -H "Origin: https://emmastudio.pl" -d '{"message":"test","history":[]}'   https://TWOJ-ADRES.vercel.app/api/chat
+```
+
+Powinno wrócić **401** — to znaczy, że ochrona działa i skrypt bez tokenu nie przejdzie.
+
+Na koniec otwórz `https://TWOJ-ADRES.vercel.app/` w przeglądarce: powinna pokazać się
+strona demo. Jeśli widzisz 404, Output Directory zostało nadpisane w panelu — wyczyść je.
 
 ---
 

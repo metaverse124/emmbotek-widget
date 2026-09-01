@@ -1,16 +1,30 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
   "functions": {
-    "api/*.js": { "runtime": "nodejs20.x", "maxDuration": 30 }
+    "api/*.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
+    }
   },
   "headers": [
     {
       "source": "/avatars/(.*)",
-      "headers": [{ "key": "cache-control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     },
     {
       "source": "/emma-widget.(js|css)",
-      "headers": [{ "key": "cache-control", "value": "public, max-age=3600" }]
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ]
 }
