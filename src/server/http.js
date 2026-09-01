@@ -50,7 +50,12 @@ export function applyCors(res, origin) {
   res.setHeader('access-control-allow-origin', origin);
   res.setHeader('vary', 'Origin');
   res.setHeader('access-control-allow-methods', 'POST, OPTIONS');
-  res.setHeader('access-control-allow-headers', 'content-type');
+  // x-emmbotek-token MUSI byc na tej liscie. To naglowek niestandardowy, wiec
+  // przegladarka wysyla najpierw zapytanie preflight - a gdy nie ma go w odpowiedzi,
+  // blokuje wlasciwe zadanie, zanim w ogole dojdzie do serwera. Objaw jest mylacy:
+  // widget mowi "nie moge sie polaczyc", a backend testowany curl-em dziala,
+  // bo curl preflightu nie robi.
+  res.setHeader('access-control-allow-headers', 'content-type, x-emmbotek-token');
   res.setHeader('access-control-max-age', '600');
 }
 

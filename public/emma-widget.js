@@ -1086,7 +1086,20 @@
       return Promise.resolve(state.token);
     }
     return global.fetch(state.options.tokenUrl, { method: 'GET', credentials: 'omit' })
-      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (r) {
+        // Zle ustawiony tokenUrl wskazuje na wlasna strone, a ta oddaje index.html
+        // ze statusem 200. Bez tego sprawdzenia widget po cichu zostawal bez tokenu
+        // i kazda wiadomosc konczyla sie bledem 401 - bez sladu, gdzie szukac.
+        var typ = r.headers.get('content-type') || '';
+        if (!r.ok || typ.indexOf('json') === -1) {
+          if (global.console && global.console.warn) {
+            global.console.warn('[Emmbotek] ' + state.options.tokenUrl + ' nie zwraca JSON-a (status '
+              + r.status + ', typ "' + typ + '"). Sprawdz opcje tokenUrl przy init().');
+          }
+          return null;
+        }
+        return r.json();
+      })
       .then(function (dane) {
         if (!dane) return null;
         state.token = dane.token || null;
