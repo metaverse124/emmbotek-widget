@@ -1355,6 +1355,28 @@
   .emma__tab-avatar { width: 72px; height: 72px; }
   .emma__avatar { width: 84px; height: 84px; }
   .emma__row { max-width: 92%; }
+
+  /*
+     Na telefonie zakladka usuwa sie mocniej w tlo: jest bardziej przezroczysta
+     i wsunieta czescia poza krawedz ekranu. Powod jest praktyczny - ekran ma
+     kilka razy mniej miejsca niz monitor, a zakladka wisi na nim caly czas,
+     takze wtedy, gdy ktos po prostu czyta strone.
+
+     Wsuwamy ja o 12 px z 62 px szerokosci, wiec zostaje na widoku ponad
+     cztery piate - palec ma w co trafic, a maskotka nadal jest rozpoznawalna.
+     Dotkniecie, najechanie i fokus przywracaja pelna widocznosc i wysuwaja
+     zakladke z powrotem.
+  */
+  .emma__tab {
+    opacity: .55;
+    transform: translateY(-50%) scale(.85) translateX(12px);
+  }
+  .emma__tab:hover,
+  .emma__tab:focus-visible,
+  .emma__tab:active {
+    opacity: 1;
+    transform: translateY(-50%) scale(.92) translateX(0);
+  }
 }
 
 html.emma-locked, html.emma-locked body { overflow: hidden; }
