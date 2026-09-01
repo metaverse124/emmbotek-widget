@@ -902,8 +902,25 @@
     jezykPole.appendChild(jezykPrzycisk);
     jezykPole.appendChild(jezykLista);
 
-    jezykiPasek.appendChild(jezykEtykieta);
-    jezykiPasek.appendChild(jezykPole);
+    /*
+      Wybor jezyka mieszka w naglowku, a nie we wlasnym pasku pod nim.
+
+      Zmierzone na panelu 380x560: pasek zabieral 8,1% wysokosci okna, a sama
+      rozmowa dostawala 30,3%. Przy siedmiu blokach interfejsu i jednym bloku
+      tresci to zla proporcja - jezyk zmienia sie raz na rozmowe, wiec nie
+      zasluguje na staly wiersz.
+
+      W naglowku zostaje sam okragly przycisk z flaga, w jednym rzedzie z koszem
+      i zamknieciem. Nazwa jezyka nie znika - jest w `aria-label` dla czytnikow
+      ekranu i w rozwinietej liscie, gdzie ma znaczenie przy wyborze.
+    */
+    jezykPole.classList.add('emma__jezyk-pole--naglowek');
+    jezykEtykieta.className = 'emma__sr';
+    // Wstawiamy PRZED koszem, zeby kolejnosc w naglowku brzmiala: jezyk, kosz,
+    // zamknij. `insertBefore`, a nie `appendChild`, bo naglowek jest juz zlozony -
+    // pole jezyka powstaje nizej w kodzie niz sam naglowek.
+    header.insertBefore(jezykPole, clearBtn);
+    header.insertBefore(jezykEtykieta, jezykPole);
 
     // Panel oceny - schowany do czasu, az rozmowa bedzie na tyle dluga, zeby bylo co oceniac.
     var ocena = el('div', 'emma__ocena');
@@ -918,7 +935,6 @@
     live.setAttribute('aria-live', 'polite');
 
     panel.appendChild(header);
-    panel.appendChild(jezykiPasek);
     panel.appendChild(log);
     panel.appendChild(ocena);
     panel.appendChild(chips);
@@ -1197,6 +1213,85 @@
     });
   }
 
+  /* ------------------------------------------------------- strumien odpowiedzi */
+
+  /**
+   * Czyta odpowiedz nadawana zdarzeniami (SSE) i oddaje ladunek zdarzenia "koniec".
+   *
+   * Po co: model mysli i pisze lacznie kilka sekund. Bez strumienia uzytkownik
+   * przez caly ten czas patrzy na trzy kropki; ze strumieniem pierwsze zdanie
+   * pojawia sie od razu, a reszta dopisuje sie w locie.
+   *
+   * Zdarzenie "tekst" niesie CALA tresc dotychczasowa, nie roznice - dlatego
+   * zgubiony kawalek niczego nie psuje i nie trzeba niczego sklejac.
+   */
+  function czytajStrumien(response, naZdarzenie) {
+    var reader = response.body.getReader();
+    var decoder = new global.TextDecoder();
+    var bufor = '';
+    var koniec = null;
+
+    function dalej() {
+      return reader.read().then(function (kawalek) {
+        if (kawalek.done) return koniec;
+        bufor += decoder.decode(kawalek.value, { stream: true });
+
+        // Zdarzenia SSE rozdziela pusta linia; ostatni, niedomkniety zostaje w buforze.
+        var czesci = bufor.split('\n\n');
+        bufor = czesci.pop() || '';
+
+        for (var i = 0; i < czesci.length; i += 1) {
+          var linie = czesci[i].split('\n');
+          var nazwa = null;
+          var dane = null;
+          for (var j = 0; j < linie.length; j += 1) {
+            if (linie[j].indexOf('event:') === 0) {
+              nazwa = linie[j].slice(6).trim();
+            } else if (linie[j].indexOf('data:') === 0) {
+              try { dane = JSON.parse(linie[j].slice(5).trim()); } catch (blad) { dane = null; }
+            }
+          }
+          if (!nazwa || !dane) continue;
+          if (nazwa === 'koniec') koniec = dane;
+          else naZdarzenie(nazwa, dane);
+        }
+        return dalej();
+      });
+    }
+
+    return dalej();
+  }
+
+  /** Podmienia tresc w istniejacym dymku, bez tworzenia nowego wiersza. */
+  function ustawTresc(wiersz, tekst) {
+    var bubble = wiersz.querySelector('.emma__bubble');
+    if (bubble) renderText(bubble, tekst);
+  }
+
+  /**
+   * Domyka wiersz zbudowany w trakcie strumienia: wstawia ostateczna tresc,
+   * wlasciwa mine i dopisuje wiadomosc do historii. W trakcie pisania wiersz
+   * celowo NIE trafia do historii - gdyby ktos zamknal karte w polowie zdania,
+   * po powrocie zostalby mu urwany kawalek.
+   */
+  function domknijStrumien(wiersz, data) {
+    var emocja = data.emotion || 'NEUTRAL';
+    ustawTresc(wiersz, data.message);
+    wiersz.setAttribute('data-emocja', emocja);
+    var stara = wiersz.querySelector('.emma__msg-avatar');
+    if (stara && stara.parentNode) stara.parentNode.removeChild(stara);
+    var mina = messageAvatar(emocja);
+    if (mina) wiersz.insertBefore(mina, wiersz.firstChild);
+    state.conversation.messages.push({
+      role: 'model',
+      text: data.message,
+      intent: data.meta && data.meta.intent,
+      emotion: emocja,
+      at: new Date().toISOString(),
+    });
+    saveConversation();
+  }
+
   /* ------------------------------------------------------------- komunikacja */
 
   function historyForApi() {
@@ -1285,12 +1380,45 @@
       shownCtas: state.shownCtas.slice(-10),
     });
 
+    var kropkiZdjete = false;
+    function zdejmijKropki() {
+      if (kropkiZdjete) return;
+      kropkiZdjete = true;
+      typing.remove();
+    }
+
     function wyslijZ(token) {
-      var naglowki = { 'content-type': 'application/json' };
+      var naglowki = {
+        'content-type': 'application/json',
+        // Prosimy o strumien, ale godzimy sie na zwykly JSON - starszy backend
+        // albo posrednik bez obslugi SSE odda po prostu calosc naraz.
+        accept: 'text/event-stream, application/json',
+      };
       if (token) naglowki['x-emmbotek-token'] = token;
       return fetch(state.options.apiUrl, { method: 'POST', headers: naglowki, body: tresc })
         .then(function (response) {
-          return response.json().then(function (data) { return { status: response.status, data: data }; });
+          var typ = (response.headers && response.headers.get('content-type')) || '';
+          var strumien = typ.indexOf('text/event-stream') !== -1
+            && response.body && response.body.getReader && global.TextDecoder;
+
+          if (!strumien) {
+            return response.json().then(function (data) { return { status: response.status, data: data }; });
+          }
+
+          var wiersz = null;
+          return czytajStrumien(response, function (nazwa, dane) {
+            if (nazwa === 'emocja') {
+              if (state.avatar && dane.emotion) state.avatar.set(dane.emotion);
+              return;
+            }
+            if (nazwa !== 'tekst' || !dane.message) return;
+            zdejmijKropki();
+            if (!wiersz) wiersz = addMessage('model', dane.message, { save: false });
+            else ustawTresc(wiersz, dane.message);
+            scrollLog();
+          }).then(function (koniec) {
+            return { status: response.status, data: koniec || {}, wiersz: wiersz };
+          });
         });
     }
 
@@ -1305,7 +1433,7 @@
         return result;
       })
       .then(function (result) {
-        typing.remove();
+        zdejmijKropki();
         var data = result.data || {};
         if (result.status >= 400 && !data.message) {
           throw new Error(data.error || 'Blad polaczenia');
@@ -1315,10 +1443,18 @@
         var emotion = data.emotion || 'NEUTRAL';
         if (state.avatar) state.avatar.set(emotion);
 
-        var row = addMessage('model', data.message, {
-          emotion: emotion,
-          intent: data.meta && data.meta.intent,
-        });
+        // Przy strumieniu wiersz juz stoi i ma tresc - domykamy go zamiast
+        // dokladac drugi z tym samym zdaniem.
+        var row;
+        if (result.wiersz) {
+          domknijStrumien(result.wiersz, data);
+          row = result.wiersz;
+        } else {
+          row = addMessage('model', data.message, {
+            emotion: emotion,
+            intent: data.meta && data.meta.intent,
+          });
+        }
         renderCtas(row, data.cta, { intent: data.meta && data.meta.intent, stage: data.stage });
         // Podpowiedzi kolejnych pytan wynikaja z tego, co Emmbotek wlasnie powiedzial,
         // wiec zastepuja chipsy startowe. Gdy model ich nie odda (albo watek sie
@@ -1330,7 +1466,7 @@
         pokazOcene();
       })
       .catch(function () {
-        typing.remove();
+        zdejmijKropki();
         if (state.avatar) state.avatar.set('EMPATHY');
         addMessage('model', t('blad'), { save: false });
       })
@@ -1506,9 +1642,11 @@
     var przycisk = state.nodes.jezykPrzycisk;
     przycisk.innerHTML = '';
     przycisk.appendChild(flaga(kod));
-    przycisk.appendChild(el('span', 'emma__jezyk-nazwa', jezyk.wlasna));
-    przycisk.appendChild(el('span', 'emma__jezyk-strzalka'));
+    // Sama flaga - nazwa jezyka zostaje w etykiecie dla czytnikow ekranu
+    // i w rozwinietej liscie. W naglowku licza sie piksele, a flaga niesie
+    // te sama informacje w jednej trzeciej szerokosci.
     przycisk.setAttribute('aria-label', t('jezyk') + ': ' + jezyk.wlasna);
+    przycisk.title = t('jezyk') + ': ' + jezyk.wlasna;
     var opcje = state.nodes.jezykLista.querySelectorAll('.emma__jezyk-opcja');
     for (var i = 0; i < opcje.length; i += 1) {
       var wybrana = opcje[i].getAttribute('data-kod') === kod;

@@ -55,7 +55,11 @@ export function applyCors(res, origin) {
   // blokuje wlasciwe zadanie, zanim w ogole dojdzie do serwera. Objaw jest mylacy:
   // widget mowi "nie moge sie polaczyc", a backend testowany curl-em dziala,
   // bo curl preflightu nie robi.
-  res.setHeader('access-control-allow-headers', 'content-type, x-emmbotek-token');
+  // `accept` jest tu jawnie, bo widget prosi o `text/event-stream`. Naglowek jest
+  // wprawdzie na liscie bezpiecznej CORS, ale tylko dla prostych wartosci - przy
+  // preflightcie (a ten i tak zachodzi przez x-emmbotek-token) brak wpisu potrafi
+  // wywrocic cale zapytanie. Sprawdzone juz raz na zywej stronie przy tokenie.
+  res.setHeader('access-control-allow-headers', 'content-type, x-emmbotek-token, accept');
   res.setHeader('access-control-max-age', '600');
 }
 

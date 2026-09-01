@@ -1,0 +1,65 @@
+# Codzienna kontrola zywego wdrozenia.
+#
+# Problem, ktory to rozwiazuje: gdy klucz Gemini wygasnie, gdy strona przestanie
+# oddawac /wiedza.json albo gdy wyczerpie sie limit, Emmbotek nie przestaje
+# dzialac w sposob widoczny - po prostu KAZDEMU odpowiada "chwilowo nie moge sie
+# polaczyc". Bez tego zadania dowiedzielibysmy sie o tym od klienta albo wcale.
+#
+# Alert nie wymaga zadnej dodatkowej uslugi: nieudany przebieg zadania GitHub
+# sam wysyla powiadomienie na skrzynke wlasciciela repozytorium.
+name: Kontrola produkcji
+
+on:
+  schedule:
+    # 06:40 UTC, czyli przed poczatkiem pracy sekretariatu.
+    # Godzina nierowna celowo - o pelnych godzinach kolejka GitHuba jest dluzsza.
+    - cron: '40 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  kontrola:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Skrypt sprawdza po kolei: strone demo, wystawienie tokenu, odrzucenie
+      # zapytania bez tokenu, odrzucenie obcej domeny i prawdziwa rozmowe
+      # z modelem. Konczy sie kodem 1, gdy ktorykolwiek punkt zawiedzie.
+      - name: Pelna sciezka wdrozenia
+        run: node scripts/test-wdrozenia.mjs https://emmbotek-widget.vercel.app
+
+      # Kanal wiedzy sprawdzamy osobno, bo lezy na innym serwerze (LH.pl) niz
+      # backend. Blokada plikow .json w .htaccess juz raz go wylaczyla.
+      - name: Kanal wiedzy na stronie
+        run: |
+          node -e "
+          const r = await fetch('https://emmastudio.pl/wiedza.json');
+          if (!r.ok) { console.error('wiedza.json: HTTP ' + r.status); process.exit(1); }
+          const dane = await r.json();
+          const ile = Array.isArray(dane.dokumenty) ? dane.dokumenty.length : 0;
+          if (ile < 10) { console.error('Kanal ma tylko ' + ile + ' dokumentow - cos go obcielo'); process.exit(1); }
+          console.log('Kanal wiedzy: ' + ile + ' dokumentow.');
+          "
+
+      # Widget jest kopiowany recznie z tego repozytorium na strone. Ten krok
+      # pilnuje, zeby kopia na LH.pl nie zostala w tyle za zrodlem.
+      - name: Zgodnosc widgetu na stronie ze zrodlem
+        run: |
+          node -e "
+          const { createHash } = require('node:crypto');
+          const { readFileSync } = require('node:fs');
+          const pliki = ['emma-widget.js', 'emma-widget.css', 'emmbotek-avatar.js'];
+          let rozjazd = 0;
+          for (const plik of pliki) {
+            const lokalnie = createHash('sha256').update(readFileSync('public/' + plik)).digest('hex');
+            const odp = await fetch('https://emmastudio.pl/emmbotek/' + plik);
+            const zdalnie = createHash('sha256').update(Buffer.from(await odp.arrayBuffer())).digest('hex');
+            if (lokalnie === zdalnie) { console.log('zgodny: ' + plik); }
+            else { console.log('ROZJAZD: ' + plik + ' - strona ma inna wersje niz repozytorium'); rozjazd += 1; }
+          }
+          if (rozjazd) { console.error('Na stronie stoi ' + rozjazd + ' plik(ow) w innej wersji. Wgraj nowa paczke.'); process.exit(1); }
+          "

@@ -21,9 +21,10 @@ import { buildKnowledgeBlock, guardUserMessage } from '../../agent/injectionGuar
 import { buildSystemPrompt } from '../../agent/systemPrompt.js';
 import { trimHistory, toGeminiContents, countTurns } from '../../agent/conversation.js';
 import { generate, GeminiError } from '../../gemini/client.js';
-import { parseModelResponse } from '../../agent/responseParser.js';
+import { parseModelResponse, salvageMessage } from '../../agent/responseParser.js';
+import { chceStrumienia, rozpocznijSSE, wyslijZdarzenie, zakonczSSE } from '../sse.js';
 import { buildCtas } from '../../agent/ctaEngine.js';
-import { systemEmotion } from '../../agent/emotions.js';
+import { systemEmotion, parseEmotion, stripEmotionTags } from '../../agent/emotions.js';
 import { recordGap } from '../../knowledge/gaps.js';
 
 /** Komunikat przy wyczerpaniu limitow Gemini (sekcja 39 briefu) - nigdy surowy blad 429. */
@@ -185,12 +186,51 @@ export function createChatHandler({
       now: timestamp.toISOString(),
     });
 
+    /*
+       Od tego miejsca odpowiedz moze plynac strumieniem. Otwieramy go dopiero
+       TERAZ, tuz przed wolaniem modelu - wszystkie odmowy (zly token, limit,
+       bledna tresc) zdarzaja sie wyzej i musza moc oddac normalny kod bledu,
+       co po wyslaniu naglowkow SSE nie jest juz mozliwe.
+
+       `oddaj` ujednolica zakonczenie: przy strumieniu wysyla zdarzenie "koniec"
+       z dokladnie tym samym obiektem, ktory bez strumienia poszedlby jako JSON.
+       Dzieki temu ponizszy kod istnieje w jednej wersji, a nie w dwoch.
+    */
+    const strumien = chceStrumienia(req);
+    if (strumien) rozpocznijSSE(res);
+    const oddaj = (payload) => {
+      if (!strumien) return json(res, 200, payload);
+      wyslijZdarzenie(res, 'koniec', payload);
+      return zakonczSSE(res);
+    };
+
     let parsed;
     let modelUsed = null;
     try {
+      let ostatniFragment = '';
+      let emocjaWyslana = false;
       const result = await generateFn({
         systemPrompt,
         contents: toGeminiContents(turns, guarded.text),
+        onFragment: strumien ? (surowe) => {
+          // Model pisze JSON, wiec z niedokonczonej odpowiedzi wyciagamy samo
+          // pole "message" - dokladnie tym samym narzedziem, ktore ratuje tresc
+          // z odpowiedzi urwanej przez limit tokenow.
+          const czesc = salvageMessage(surowe);
+          if (!czesc) return;
+          if (!emocjaWyslana) {
+            const { emotion } = parseEmotion(czesc);
+            if (emotion) {
+              emocjaWyslana = true;
+              wyslijZdarzenie(res, 'emocja', { emotion });
+            }
+          }
+          const tresc = stripEmotionTags(czesc);
+          if (tresc && tresc !== ostatniFragment) {
+            ostatniFragment = tresc;
+            wyslijZdarzenie(res, 'tekst', { message: tresc });
+          }
+        } : null,
       });
       modelUsed = result.model;
       parsed = parseModelResponse(result.text, { ctaMap: base.ctaMap ?? {}, contact: base.contact ?? {} });
@@ -202,7 +242,7 @@ export function createChatHandler({
         knowledge: [], currentUrl: value.currentUrl, turns: turnCount, shown: value.shownCtas,
         contact: base.contact ?? {},
       });
-      return json(res, 200, {
+      return oddaj({
         emotion: systemEmotion.overloaded,
         message,
         cta: contactCta,
@@ -231,7 +271,7 @@ export function createChatHandler({
           contact: base.contact ?? {},
         });
 
-    return json(res, 200, {
+    return oddaj({
       emotion: parsed.emotion,
       message: parsed.message,
       cta,

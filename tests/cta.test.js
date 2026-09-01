@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildCtas, sanitizeModelCtas, wantsAction } from '../src/agent/ctaEngine.js';
+import { buildCtaMap } from '../src/knowledge/ctaMap.js';
+import { buildSystemPrompt } from '../src/agent/systemPrompt.js';
 
 const ctaMap = {
   OFFER: { url: 'https://emmastudio.pl/oferta/', anchors: [] },
@@ -135,4 +137,27 @@ test('model nie moze przemycic wiecej niz 2 CTA', () => {
     { ctaMap },
   );
   assert.equal(cta.length, 2);
+});
+
+test('wpis blogowy nie przejmuje celow ofertowych', () => {
+  // Zmierzone na zywym kanale: swiezy wpis /blog/hiszpanski-od-zera-dla-doroslych
+  // wygrywal z /oferta o cel COURSE_ADULTS, bo punktacja premiuje swiezosc.
+  const base = {
+    documents: [
+      { id: 'a', sourceUrl: 'https://emmastudio.pl/oferta', sourceTitle: 'Oferta', sourceType: 'COURSE', status: 'active', content: 'x' },
+      { id: 'b', sourceUrl: 'https://emmastudio.pl/blog/hiszpanski-od-zera-dla-doroslych', sourceTitle: 'Hiszpanski dla doroslych', sourceType: 'BLOG', status: 'active', content: 'x', publishedAt: new Date().toISOString() },
+      { id: 'c', sourceUrl: 'https://emmastudio.pl/blog', sourceTitle: 'Blog', sourceType: 'BLOG', status: 'active', content: 'x' },
+    ],
+  };
+  const mapa = buildCtaMap(base);
+  assert.equal(mapa.COURSE_ADULTS, undefined, 'wpis blogowy nie moze byc celem oferty dla doroslych');
+  assert.equal(mapa.OFFER?.url, 'https://emmastudio.pl/oferta');
+  assert.match(mapa.BLOG?.url ?? '', /\/blog/);
+});
+
+test('System Prompt zada pelnych znakow diakrytycznych', () => {
+  const prompt = buildSystemPrompt({ knowledge: 'BRAK' });
+  assert.match(prompt, /znakow diakrytycznych/i);
+  assert.match(prompt, /Sprawdziłem/);
+  assert.match(prompt, /NIE naśladuj jej pisowni/);
 });

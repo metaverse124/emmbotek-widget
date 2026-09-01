@@ -40,7 +40,29 @@ const TYPE_TO_TARGET = {
   COURSE: 'OFFER',
 };
 
+/** Czy dokument jest wpisem blogowym (a nie sama lista wpisow pod /blog). */
+function czyWpisBlogowy(doc) {
+  if (doc.sourceType === 'BLOG') return true;
+  const sciezka = String(doc.sourceUrl ?? '').replace(/https?:\/\/[^/]+/, '');
+  return /^\/blog\/.+/.test(sciezka);
+}
+
 function targetsFor(doc) {
+  /*
+     Wpis blogowy moze byc celem WYLACZNIE dla CTA typu BLOG.
+
+     Bez tego ograniczenia artykul przejmowal cele ofertowe, bo punktacja nizej
+     premiuje swiezosc: strona /oferta ma glebokosc 1 (wynik 9), a swiezy wpis
+     /blog/cos-tam glebokosc 2, ale z premia za date dochodzi do 11. Zmierzone
+     na zywym kanale: cztery z trzynastu celow prowadzily do artykulow -
+     przycisk "Poznaj oferte dla doroslych" otwieral wpis o hiszpanskim.
+
+     Regula "blog nie nadpisuje oferty, cennika ani regulaminu" istniala dotad
+     tylko w System Prompcie, czyli obowiazywala model, ale nie mape adresow.
+     Tutaj jest jej egzekwowanie.
+  */
+  if (czyWpisBlogowy(doc)) return ['BLOG'];
+
   const haystack = normalize(`${doc.sourceUrl ?? ''} ${doc.sourceTitle ?? ''}`);
   const found = new Set();
   for (const rule of TARGET_RULES) {

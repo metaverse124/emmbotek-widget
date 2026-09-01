@@ -1,0 +1,50 @@
+# Testy przy kazdej zmianie w kodzie.
+#
+# Do tej pory zestaw testow uruchamial sie wylacznie recznie, wiec regresja
+# mogla spokojnie wjechac na produkcje. Tutaj chodzi o jedna rzecz: zeby nikt
+# nie musial o tym pamietac.
+name: Testy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Projekt nie ma zaleznosci produkcyjnych ani deweloperskich, wiec nie ma
+      # czego instalowac - `node:test` jest czescia Node.
+      - name: Testy jednostkowe
+        run: npm test
+
+      - name: Skladnia plikow widgetu
+        run: |
+          node --check public/emma-widget.js
+          node --check public/emmbotek-avatar.js
+
+      # Arkusz stylow nie przechodzi przez zaden budowniczy, wiec literowka
+      # w komentarzu albo zgubiona klamra trafilaby prosto na strone. Ten krok
+      # wylapal juz raz realny blad: komentarz wstawiony po zamknietym `*/`
+      # wycial z arkusza cala regule kursora.
+      - name: Bilans nawiasow w arkuszu stylow
+        run: |
+          node -e "
+          const s = require('fs').readFileSync('public/emma-widget.css', 'utf8');
+          const otw = (s.match(/\/\*/g) || []).length;
+          const zam = (s.match(/\*\//g) || []).length;
+          const bez = s.replace(/\/\*[\s\S]*?\*\//g, '');
+          const l = (bez.match(/{/g) || []).length;
+          const p = (bez.match(/}/g) || []).length;
+          if (otw !== zam) { console.error('Niezamkniety komentarz: ' + otw + ' otwarc, ' + zam + ' zamkniec'); process.exit(1); }
+          if (l !== p) { console.error('Niezbilansowane klamry: ' + l + ' otwarc, ' + p + ' zamkniec'); process.exit(1); }
+          console.log('Arkusz zbilansowany: ' + l + ' regul.');
+          "

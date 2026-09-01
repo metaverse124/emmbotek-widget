@@ -223,7 +223,10 @@
   display: flex;
   flex-wrap: wrap;                 /* podtytul schodzi do wlasnego wiersza */
   align-items: center;
-  gap: 14px;
+  /* 10 px zamiast 14: w naglowku sa teraz cztery odstepy (awatar, tytul, jezyk,
+     kosz, zamkniecie). Przy 14 px na tytul zostawalo 102 px przy potrzebnych
+     109 i napis "Emmbotek" konczyl sie wielokropkiem. */
+  gap: 10px;
   row-gap: 0;                      /* odstep wiersza ustawia margines podtytulu */
   padding: 12px 14px;
   background: var(--emma-base);
@@ -276,7 +279,10 @@
   font-display: swap;
 }
 
-.emma__headtext { flex: 1 1 auto; min-width: 0; }
+/* `flex-basis: 0` jest tu istotne: przy `auto` blok tytulu rosl do swojej
+   naturalnej szerokosci i wypychal przyciski do drugiego wiersza - naglowek
+   puchl wtedy do 31% panelu. Z baza zerowa to tytul ustepuje miejsca. */
+.emma__headtext { flex: 1 1 0; min-width: 0; }
 .emma__title {
   margin: 0;
   font-family: "Lustria", "EmmbotekLogo", "Lora", Georgia, "Times New Roman", serif;
@@ -1406,4 +1412,66 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
   /* Zabezpieczenie na wypadek, gdyby warstwa jednak powstala - JS sprawdza to
      samo i zwykle w ogole jej nie tworzy. */
   .emma-swieto { display: none; }
+}
+
+/* ------------------------------------------- wybor jezyka w naglowku */
+/*
+   Przycisk jezyka przeniesiony z wlasnego paska do naglowka.
+
+   Powod jest arytmetyczny: pasek zabieral 8,1% wysokosci panelu, a sama rozmowa
+   dostawala 30,3%. Siedem blokow interfejsu na jeden blok tresci to zla
+   proporcja - jezyk wybiera sie raz na rozmowe, wiec nie potrzebuje stalego
+   wiersza. Zostaje okragly przycisk z flaga, w jednym rzedzie z koszem
+   i zamknieciem; nazwa jezyka zyje w etykiecie dostepnosci i w rozwinietej liscie.
+*/
+.emma__jezyk-pole--naglowek {
+  flex: 0 0 38px;
+  width: 38px;
+}
+
+.emma__jezyk-pole--naglowek .emma__jezyk-przycisk {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+  border-color: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .12);
+  /* Ten sam material co pozostale ikony naglowka - inaczej wygladalby
+     jak wklejony z innego interfejsu. */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 2px 5px rgba(19, 59, 71, .32),
+    inset 0 1px 0 rgba(255, 255, 255, .28);
+}
+.emma__jezyk-pole--naglowek .emma__jezyk-przycisk:hover {
+  border-color: rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .2);
+}
+.emma__jezyk-pole--naglowek .emma__jezyk-przycisk:focus-visible {
+  border-color: var(--emma-accent);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, .45);
+}
+.emma__jezyk-pole--naglowek .emma__flaga {
+  width: 22px;
+  height: 16px;
+}
+
+/* Lista rozwija sie pod przyciskiem i wyrownuje do jego prawej krawedzi -
+   przy szerokosci 38 px rozciagniecie jej do szerokosci pola dawaloby pasek
+   na 38 px, w ktorym nie miescilaby sie zadna nazwa jezyka. */
+.emma__jezyk-pole--naglowek .emma__jezyk-lista {
+  left: auto;
+  right: 0;
+  width: 208px;
+  color: var(--emma-text);
+}
+
+/* Nota RODO drobniejsza: 11.5 -> 10.5 px i ciasniejsze wypelnienie. Zmierzone
+   76 px z 717 px panelu (10,6%) jak na przypis to bylo za duzo. */
+.emma__note {
+  padding: 8px 16px 9px;
+  font-size: 10.5px;
+  line-height: 1.45;
 }
