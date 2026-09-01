@@ -28,6 +28,23 @@ export function checkOrigin(req, allowed = config.security.allowedOrigins, {
   return { ok, origin };
 }
 
+/**
+ * Do czego przypiac token wstepu: adres NASZEGO backendu, nie strony pytajacej.
+ *
+ * Naturalnym wyborem wydaje sie Origin, ale przegladarka wysyla go niekonsekwentnie:
+ * przy zapytaniu z tej samej domeny jest przy POST, a nie ma go przy GET. Token
+ * wystawiony przez /api/token mial wiec inna wartosc niz sprawdzana na /api/chat
+ * i nigdy sie nie zgadzal.
+ *
+ * Host jest w kazdym zapytaniu HTTP i identyczny dla obu wywolan - i w demo na jednym
+ * adresie, i w produkcji, gdzie strona stoi na LH.pl, a backend na Vercelu.
+ *
+ * Nie tracimy na tym ochrony: tego, KTO pyta, pilnuje osobno allowlista domen
+ * (checkOrigin), ktora dziala na obu endpointach. Zadaniem tokenu jest wymusic
+ * przejscie przez nasz serwer po podpis, a nie rozpoznanie zadajacego.
+ */
+export const zrodloZadania = (req) => `host:${String(req.headers?.host ?? '')}`;
+
 export function applyCors(res, origin) {
   if (!origin) return;
   res.setHeader('access-control-allow-origin', origin);

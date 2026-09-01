@@ -98,6 +98,21 @@ export const config = {
      * "to nie widget". Lokalnie zostaje furtka na diagnostyke curl-em.
      */
     requireOrigin: bool('REQUIRE_ORIGIN', process.env.NODE_ENV === 'production'),
+    /**
+     * Sekret do podpisywania krotkotrwalych tokenow wstepu (src/server/token.js).
+     * Sama jego obecnosc wlacza ochrone - bez niego /api/chat dziala jak dotad.
+     * Nagłowek Origin da sie podrobic curl-em, wiec allowlista sama nie wystarcza.
+     */
+    tokenSecret: env('TOKEN_SECRET', ''),
+    /** Jak dlugo token jest wazny. 20 minut wystarcza na rozmowe, a skrypt musi
+     *  po kazdym wygasnieciu wracac po nowy. */
+    tokenTtlMs: num('TOKEN_TTL_MS', 20 * 60 * 1000),
+    /**
+     * Dzienny budzet zapytan do modelu - twarda granica na wypadek naduzycia.
+     * Po jego przekroczeniu Emmbotek odsyla do sekretariatu zamiast wolac Gemini.
+     * To jedyne zabezpieczenie, ktore GWARANTUJE, ze limit nie zostanie przepalony.
+     */
+    dailyBudget: num('DAILY_BUDGET', 800),
     syncToken: env('SYNC_TOKEN', ''),
     /**
      * Vercel Cron wysyla `Authorization: Bearer $CRON_SECRET`, a nie nasz SYNC_TOKEN.

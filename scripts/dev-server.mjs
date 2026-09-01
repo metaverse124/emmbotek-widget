@@ -11,6 +11,7 @@ import config from '../src/config.js';
 import { createChatHandler } from '../src/server/handlers/chat.js';
 import { createAnalyticsHandler } from '../src/server/handlers/analytics.js';
 import { createSyncHandler } from '../src/server/handlers/sync.js';
+import { createTokenHandler } from '../src/server/handlers/token.js';
 import { demoGenerate } from './demo-model.mjs';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -30,6 +31,7 @@ const useDemo = !config.gemini.apiKey;
 const chat = createChatHandler(useDemo ? { generateFn: demoGenerate } : {});
 const analytics = createAnalyticsHandler();
 const sync = createSyncHandler();
+const tokenHandler = createTokenHandler();
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -37,6 +39,7 @@ const server = createServer(async (req, res) => {
   if (url.pathname === '/api/chat') return chat(req, res);
   if (url.pathname === '/api/analytics') return analytics(req, res);
   if (url.pathname === '/api/sync') return sync(req, res);
+  if (url.pathname === '/api/token') return tokenHandler(req, res);
 
   const relative = url.pathname === '/' ? '/index.html' : url.pathname;
   const file = path.join(PUBLIC, path.normalize(relative).replace(/^(\.\.[/\\])+/, ''));

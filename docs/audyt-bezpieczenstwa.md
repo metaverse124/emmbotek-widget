@@ -39,6 +39,50 @@ Przycisk bez wiarygodnego celu **w ogóle nie powstaje**.
 
 ---
 
+### 3. Nagłówek `Origin` da się podrobić — allowlista sama nie chroniła portfela
+
+**Było:** po naprawie punktu 1 żądanie musiało nieść `Origin` z allowlisty. Ale poza
+przeglądarką ten nagłówek ustawia się jednym parametrem:
+
+```bash
+curl -X POST -H "Origin: https://emmastudio.pl" https://backend/api/chat -d '...'
+```
+
+Allowlista powstrzymywała więc obcą **stronę** przed osadzeniem widżetu, ale nie skrypt
+w pętli. Jedyną barierą zostawał limit 15 zapytań na minutę na adres IP — obchodzony
+rotacją adresów.
+
+**Jest:** dwa zabezpieczenia, oba bez firm trzecich.
+
+**Token wstępu** (`src/server/token.js`): zanim ktoś zada pytanie, musi pobrać
+z naszego backendu krótkotrwały podpis (HMAC-SHA256, ważny 20 minut) i użyć go
+w nagłówku. Prosty skrypt tego nie robi. Ochrona włącza się **samą obecnością**
+`TOKEN_SECRET` — bez niego nic się nie zmienia.
+
+Sprawdzone na działającym serwerze: `curl` bez tokenu dostaje **401**, ta sama treść
+z tokenem pobranym jak przez przeglądarkę — **200**. Token użyty z innej domeny: **401**.
+
+Token nie jest tajemnicą i nie uwierzytelnia użytkownika — każdy może go sobie wystawić,
+wchodząc na stronę. Podnosi tylko koszt automatycznego nadużycia. Kto uruchomi prawdziwą
+przeglądarkę, obejdzie go — ale to atak o rzędy wielkości droższy niż `curl` w pętli.
+
+**Dzienny budżet zapytań**: twarda granica na dobę (`DAILY_BUDGET`, domyślnie 800).
+Po jej przekroczeniu Emmbotek odsyła do sekretariatu **zamiast wołać Gemini** — i to
+jest jedyne zabezpieczenie, które *gwarantuje*, że limit nie zostanie przepalony,
+niezależnie od tego, kto puka i skąd. Licznik idzie tym samym mechanizmem co limit
+zapytań (okno 24 h), więc baza nie wymagała żadnej zmiany.
+
+**Dlaczego nie reCAPTCHA:** wysyłałaby dane każdego odwiedzającego do Google przy każdym
+wejściu na stronę, wymagałaby plakietki albo zapisu w polityce prywatności i stałaby
+w sprzeczności z linią tej strony, która hostuje u siebie nawet fonty. Tutaj nie wychodzi
+nic poza nasz własny serwer.
+
+**Pułapka, w którą wpadłem po drodze:** token wiązałem początkowo z nagłówkiem `Origin`.
+Przeglądarka wysyła go jednak niekonsekwentnie — przy zapytaniu z tej samej domeny jest
+przy POST, a nie ma go przy GET. Token wystawiony przez `/api/token` miał więc inną
+wartość niż sprawdzana na `/api/chat` i nigdy się nie zgadzał. Wiązanie przeniesione
+na `Host`, który jest w każdym żądaniu i identyczny dla obu wywołań.
+
 ## Co sprawdziłem i jest w porządku
 
 ### Wstrzyknięcie skryptu przez odpowiedź modelu (XSS)

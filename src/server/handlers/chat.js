@@ -9,8 +9,9 @@
  * Klucz API nigdy nie opuszcza serwera. Tresc strony jest danymi, nie instrukcjami.
  */
 import config from '../../config.js';
-import { json, checkOrigin, applyCors, readJsonBody, clientKey } from '../http.js';
+import { json, checkOrigin, applyCors, readJsonBody, clientKey, zrodloZadania } from '../http.js';
 import { defaultLimiter } from '../rateLimit.js';
+import { sprawdzToken, tokenWymagany } from '../token.js';
 import { validateChatRequest } from '../validate.js';
 import { detectIntent } from '../../agent/intents.js';
 import { extractProfileSignals, mergeProfile, conversationStage } from '../../agent/profile.js';
@@ -42,8 +43,42 @@ async function getBase(loader) {
 }
 
 /** Handler niezalezny od frameworka: (req, res) w stylu Node/Vercel. */
+/**
+ * Dzienny budzet zapytan do modelu.
+ *
+ * Limit po adresie IP nie chroni portfela: wystarczy rotacja adresow. To jest twarda
+ * granica na cala dobe - po jej przekroczeniu Emmbotek odsyla do sekretariatu zamiast
+ * wolac Gemini. Licznik idzie tym samym mechanizmem co limit zapytan (okno 24 h,
+ * jeden wspolny klucz), wiec baza nie potrzebuje zadnej zmiany.
+ *
+ * Bez skonfigurowanej bazy licznik jest w pamieci instancji - slabszy, ale nadal
+ * lepszy niz brak jakiejkolwiek granicy.
+ */
+const DOBA_MS = 24 * 60 * 60 * 1000;
+let budzetLokalny = { dzien: null, zuzyte: 0 };
+
+async function budzetWyczerpany(store, teraz) {
+  const limit = config.security.dailyBudget;
+  if (!limit) return false;
+
+  if (store?.skonfigurowany) {
+    try {
+      const wynik = await store.sprawdzLimit('__budzet_dzienny__', DOBA_MS, limit);
+      return !wynik.allowed;
+    } catch {
+      // Baza niedostepna - schodzimy na licznik lokalny, jak przy limicie zapytan.
+    }
+  }
+
+  const dzien = new Date(teraz).toISOString().slice(0, 10);
+  if (budzetLokalny.dzien !== dzien) budzetLokalny = { dzien, zuzyte: 0 };
+  budzetLokalny.zuzyte += 1;
+  return budzetLokalny.zuzyte > limit;
+}
+
 export function createChatHandler({
   limiter = defaultLimiter,
+  budgetStore = null,
   loadKnowledge = null,
   generateFn = generate,
   onGap = null,
@@ -60,6 +95,19 @@ export function createChatHandler({
     }
     if (req.method !== 'POST') return json(res, 405, { error: 'Dozwolona jest wylacznie metoda POST.' });
     if (!originOk) return json(res, 403, { error: 'Niedozwolone zrodlo zadania.' });
+
+    // Token wstepu: naglowek Origin da sie podrobic curl-em, wiec sama allowlista
+    // nie wystarcza. Ochrona wlacza sie sama, gdy ustawiony jest TOKEN_SECRET.
+    if (tokenWymagany()) {
+      const wynik = sprawdzToken(req.headers?.['x-emmbotek-token'], { origin: zrodloZadania(req) });
+      if (!wynik.ok) {
+        return json(res, 401, {
+          error: 'Nieprawidlowy lub wygasly token wstepu.',
+          powod: wynik.powod,
+          odswiezToken: true,     // sygnal dla widgetu: pobierz nowy i sprobuj raz jeszcze
+        });
+      }
+    }
 
     const rate = await limiter.consume(clientKey(req));
     if (!rate.allowed) {
@@ -88,6 +136,17 @@ export function createChatHandler({
 
     const { intent } = detectIntent(guarded.text, { history: value.history, currentPageType: value.pageType });
     const profile = mergeProfile(value.profile, extractProfileSignals(guarded.text));
+
+    // Budzet liczymy po walidacji, zeby smieciowe zadania go nie zjadaly.
+    if (await budzetWyczerpany(budgetStore, timestamp.getTime())) {
+      return json(res, 200, {
+        emotion: systemEmotion.overloaded,
+        message: 'Na dziś wyczerpałem limit rozmów. Proszę napisać do sekretariatu — '
+          + 'chętnie odpowiedzą na wszystkie pytania.',
+        cta: [],
+        meta: { budzetWyczerpany: true },
+      });
+    }
 
     const base = await getBase(loadKnowledge);
     let knowledge = retrieve(base, guarded.text, {

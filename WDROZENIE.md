@@ -40,6 +40,8 @@ Szczegóły i odpowiedzi na „co tam trafia": [docs/supabase.md](docs/supabase.
 | `SITE_URL` | `https://emmastudio.pl` | |
 | `KNOWLEDGE_FEED_URL` | `https://emmastudio.pl/wiedza.json` | |
 | `SYNC_TOKEN` | wymyśl długi losowy ciąg | do ręcznego odświeżania wiedzy |
+| `TOKEN_SECRET` | **inny** długi losowy ciąg | włącza ochronę przed skryptami; bez niego `/api/chat` jest otwarte |
+| `DAILY_BUDGET` | np. `800` | twarda granica zapytań na dobę |
 | `SUPABASE_URL` | z etapu 1 | pominąć, jeśli bez bazy |
 | `SUPABASE_SERVICE_ROLE_KEY` | z etapu 1 | pominąć, jeśli bez bazy |
 

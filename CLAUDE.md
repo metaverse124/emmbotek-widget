@@ -19,7 +19,7 @@ identyfikatory niewidoczne dla użytkownika.
 ## Uruchamianie
 
 ```bash
-npm test          # 148 testów, node:test, zero zależności
+npm test          # 158 testów, node:test, zero zależności
 npm run dev       # http://localhost:3000 — demo; bez GEMINI_API_KEY działa atrapa modelu
 npm run crawl     # synchronizacja wiedzy z /wiedza.json (zapasowo crawl HTML)
 node --env-file=.env scripts/test-gemini.mjs     # rozmowa z prawdziwym Gemini
@@ -55,6 +55,11 @@ npm run avatars   # ponowne wycięcie poz maskotki z pięciu arkuszy w assets/so
 - **Do bazy trafiają tylko dane, które narastają** — luki, liczniki, limity. Wiedza
   o ofercie nigdy; ta pochodzi z kanału strony.
 - **Adres IP nie opuszcza serwera.** Kluczem limitu jest jego solony skrót.
+- **Nagłówek `Origin` da się podrobić curl-em.** Allowlista domen powstrzymuje obcą
+  stronę, nie skrypt. Dlatego jest token wstępu (`src/server/token.js`) i dzienny
+  budżet zapytań — bez nich limit Gemini da się przepalić z terminala.
+- **Token wiążemy z `Host`, nie z `Origin`.** Przeglądarka wysyła `Origin`
+  niekonsekwentnie: przy tej samej domenie jest przy POST, nie ma go przy GET.
 - **Budżet `maxOutputTokens` obejmuje tokeny myślenia modelu.** Przy zbyt ciasnym
   budżecie odpowiedź urywa się w połowie JSON-a. `salvageMessage` ratuje wtedy samą
   treść, ale to bezpiecznik, nie rozwiązanie — budżet ma być z zapasem.

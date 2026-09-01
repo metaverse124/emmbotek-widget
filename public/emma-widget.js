@@ -439,6 +439,7 @@
   var DEFAULTS = {
     apiUrl: '/api/chat',
     analyticsUrl: '/api/analytics',
+    tokenUrl: '/api/token',
     assetsBase: '/',
     /*
       Napisy domyslnie brane z tablicy tlumaczen (TEKSTY) wedlug jezyka rozmowy.
@@ -476,6 +477,8 @@
     avatar: null,
     conversation: null,
     shownCtas: [],
+    token: null,
+    tokenDo: 0,
     lastFocused: null,
     nodes: {},
     initialized: false,
@@ -1066,6 +1069,33 @@
     return (body && body.getAttribute('data-emma-page-type')) || null;
   }
 
+  /* ------------------------------------------------------------ token wstepu */
+
+  /**
+   * Krotkotrwaly podpis, ktory backend wystawia naszej stronie.
+   *
+   * Nie jest tajemnica i nie uwierzytelnia uzytkownika - ma tylko sprawic, ze zeby
+   * zadac pytanie, trzeba najpierw przejsc przez nasza strone. Zwykly skrypt strzelajacy
+   * do /api/chat tego nie robi.
+   *
+   * Gdy backend nie wymaga tokenu (brak TOKEN_SECRET), oddaje `null` i widget dziala
+   * dokladnie jak dotad.
+   */
+  function pobierzToken(wymus) {
+    if (!wymus && state.token && state.tokenDo > Date.now() + 30000) {
+      return Promise.resolve(state.token);
+    }
+    return global.fetch(state.options.tokenUrl, { method: 'GET', credentials: 'omit' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (dane) {
+        if (!dane) return null;
+        state.token = dane.token || null;
+        state.tokenDo = dane.expiresAt || 0;
+        return state.token;
+      })
+      .catch(function () { return null; });   // brak tokenu nie blokuje proby wyslania
+  }
+
   function send(text) {
     var message = String(text || '').trim().slice(0, MAX_CHARS);
     if (!message || state.busy) return;
@@ -1090,21 +1120,36 @@
     if (state.avatar) { state.avatar.wake(); state.avatar.thinking(); }
     var typing = showTyping();
 
-    fetch(state.options.apiUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        message: message,
-        history: historyForApi(),
-        currentUrl: global.location ? global.location.href : null,
-        currentPageTitle: doc.title || null,
-        pageType: pageType(),
-        profile: state.conversation.profil,
-        language: state.conversation.jezykRozmowy || 'pl',
-        shownCtas: state.shownCtas.slice(-10),
-      }),
-    })
-      .then(function (response) { return response.json().then(function (data) { return { status: response.status, data: data }; }); })
+    var tresc = JSON.stringify({
+      message: message,
+      history: historyForApi(),
+      currentUrl: global.location ? global.location.href : null,
+      currentPageTitle: doc.title || null,
+      pageType: pageType(),
+      profile: state.conversation.profil,
+      language: state.conversation.jezykRozmowy || 'pl',
+      shownCtas: state.shownCtas.slice(-10),
+    });
+
+    function wyslijZ(token) {
+      var naglowki = { 'content-type': 'application/json' };
+      if (token) naglowki['x-emmbotek-token'] = token;
+      return fetch(state.options.apiUrl, { method: 'POST', headers: naglowki, body: tresc })
+        .then(function (response) {
+          return response.json().then(function (data) { return { status: response.status, data: data }; });
+        });
+    }
+
+    pobierzToken(false)
+      .then(wyslijZ)
+      .then(function (result) {
+        // Token wygasl w trakcie dlugiej rozmowy - bierzemy nowy i ponawiamy RAZ.
+        // Bez tego uzytkownik dostawalby blad po dwudziestu minutach pisania.
+        if (result.status === 401 && result.data && result.data.odswiezToken) {
+          return pobierzToken(true).then(wyslijZ);
+        }
+        return result;
+      })
       .then(function (result) {
         typing.remove();
         var data = result.data || {};
@@ -1408,6 +1453,10 @@
 
     // Zaproszenie spelnilo swoje zadanie - zakladka przestaje pulsowac na stale.
     zapamietajPoznanie();
+
+    // Token bierzemy z wyprzedzeniem, zeby pierwsze pytanie nie czekalo na dodatkowe
+    // zapytanie do serwera.
+    pobierzToken(false);
 
     global.setTimeout(function () { state.nodes.input.focus(); }, 60);
     announce('Okno rozmowy z Emmbotkiem jest otwarte.');

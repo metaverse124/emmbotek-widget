@@ -53,5 +53,6 @@ async function persistGap(question, meta = {}) {
 export default createChatHandler({
   onGap: persistGap,
   limiter: createSharedRateLimiter({ store: supabaseStore }),
+  budgetStore: supabaseStore,
 });
 export const config_ = { runtime: 'nodejs' };
