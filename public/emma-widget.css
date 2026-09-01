@@ -155,8 +155,6 @@
   flex: 0 0 auto;
 }
 
-.emma__tab-label { white-space: nowrap; }
-
 /* ------------------------------------------------------------------- panel */
 
 .emma__panel {
@@ -785,6 +783,10 @@
 }
 .emma__input:focus { outline: none; }
 .emma__input::placeholder { color: #8A9AA1; }
+/* Zablokowane pole pisania. `:has()` szarzy CALA ramke pola, ale nie ma go
+   w Firefoksie starszym niz 121, dlatego samo pole dostaje szare tlo osobna
+   regula nizej. Tam, gdzie `:has()` dziala, efekt jest pelniejszy; gdzie nie
+   dziala, uzytkownik i tak widzi, ze pole jest nieczynne. */
 .emma__input:disabled { color: #8A9AA1; cursor: not-allowed !important; }
 .emma__field:has(.emma__input:disabled) { background: #F0F3F2; }
 
@@ -882,6 +884,11 @@
   flex: 0 1 70px;
   width: 70px;
   min-width: 0;
+  /* `height` jest zapasem dla przegladarek bez `aspect-ratio` (m.in. Safari
+     do wersji 14, wciaz spotykane na starszych iPhone'ach). Bez niej mina
+     mialaby tam zerowa wysokosc. Gdzie `aspect-ratio` dziala, nadpisuje ja
+     i mina zostaje kolem takze po scisnieciu na waskim ekranie. */
+  height: 70px;
   aspect-ratio: 1 / 1;
   padding: 3px;
   border: 2px solid transparent;
@@ -1049,6 +1056,7 @@
   margin-top: 4px;
   font-size: 11px;
   font-weight: 600;
+  width: -webkit-fit-content;      /* starsze Safari */
   width: fit-content;
 }
 

@@ -111,8 +111,11 @@ npm run build
 > (np. WinSCP „Synchronizuj" z zaznaczonym kasowaniem), bo skasuje go jako „nadmiarowy".
 > Wgrywaj zwykłym kopiowaniem z nadpisaniem.
 >
-> Gdyby jednak zniknął: wgraj ponownie `public/konfiguracja.php` z repozytorium strony
-> do katalogu głównego witryny, obok `formularz.php`.
+> Gdyby jednak zniknął: **nie ma go w repozytorium** — jest w `.gitignore`, bo zawiera
+> hasło do skrzynki. Istnieje tylko w dwóch miejscach: na serwerze i w Twoim lokalnym
+> katalogu strony (`public/konfiguracja.php`). Jeśli przepadł w obu, odtwórz go ze
+> wzorca `public/konfiguracja.przyklad.php` (ten jest w repozytorium), wpisz hasło
+> skrzynki i wgraj do katalogu głównego witryny, obok `formularz.php`.
 
 4. Upewnij się, że `.htaccess` z paczki nadpisał ten na serwerze. Zawiera dwa nowe
    wyjątki: na `wiedza.json` i na `manifest.json`. Bez nich reguła blokująca pliki `.json`
