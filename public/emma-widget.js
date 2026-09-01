@@ -947,31 +947,72 @@
     // w naglowku panelu, a dwa wejscia do jednej akcji w tak malym oknie tylko
     // rozpraszaly. Zostaje ikona, bo jest zawsze widoczna, takze przy dlugiej rozmowie.
     var privacy = null;
-    var note = el('p', 'emma__note');
-    // tresc RODO w osobnym elemencie, zeby dalo sie ja podmienic przy zmianie jezyka
-    var rodoTekst = el('span', null, state.options.rodoNote || t('rodo'));
-    note.appendChild(rodoTekst);
     /*
-      Informacja, ze odpowiedzi tworzy model jezykowy.
-      Wymaga jej rozporzadzenie o sztucznej inteligencji (AI Act, art. 50):
-      uzytkownik ma wiedziec, ze rozmawia z systemem AI, a nie z czlowiekiem.
-      Drobnym drukiem, bo to przypis, a nie tresc - ale zawsze widoczna,
-      bez chowania pod rozwijaniem.
+      Stopka informacyjna zwinieta do jednego wiersza.
+
+      Byly tu trzy bloki tekstu pod soba: zdanie o zapisie rozmowy w przegladarce,
+      zdanie o generowaniu odpowiedzi przez model jezykowy i odnosnik do polityki.
+      Razem zajmowaly ponad sto pikselow, czyli wiecej niz pasek podpowiedzi -
+      przypis rosl do rangi tresci.
+
+      Teraz sa dwa drobne znaczki i odnosnik w jednej linii. Znaczek "i" rozwija
+      zdanie o zapisie rozmowy, znaczek "AI" - o modelu jezykowym. Oba rozwijaja
+      sie na klikniecie, najechanie i fokus; na telefonie nie ma najezdzania,
+      wiec samo `:hover` zostawiloby tresc niedostepna.
+
+      Wymog przejrzystosci (AI Act, art. 50) spelnia sam widoczny znaczek "AI":
+      mowi wprost, ze po drugiej stronie jest system AI. Pelne zdanie jest o jedno
+      klikniecie dalej, a niezwiniete stoi w stopce strony i w polityce prywatnosci.
     */
-    var aiNota = el('span', 'emma__note-ai', t('aiNota'));
-    // Bez wymuszonego lamania wiersza - nota plynie dalej w tym samym akapicie.
-    // Wlasny <br> dokladal caly wiersz nawet wtedy, gdy tekst mial jeszcze miejsce,
-    // i stopka urosla z 8,8% do 14,6% wysokosci panelu.
-    note.appendChild(doc.createTextNode(' '));
-    note.appendChild(aiNota);
+    var note = el('div', 'emma__note');
+    var notePasek = el('div', 'emma__note-pasek');
+
+    /** Buduje pare: okragly znaczek + rozwijana pod nim tresc. */
+    function znacznik(etykieta, tresc, opisDlaCzytnika) {
+      var przycisk = el('button', 'emma__znak', etykieta);
+      przycisk.type = 'button';
+      przycisk.setAttribute('aria-expanded', 'false');
+      przycisk.setAttribute('aria-label', opisDlaCzytnika);
+      przycisk.title = opisDlaCzytnika;
+      var pole = el('p', 'emma__znak-tresc', tresc);
+      pole.setAttribute('data-otwarte', 'false');
+      przycisk.addEventListener('click', function () {
+        var otwarte = pole.getAttribute('data-otwarte') === 'true';
+        pole.setAttribute('data-otwarte', otwarte ? 'false' : 'true');
+        przycisk.setAttribute('aria-expanded', otwarte ? 'false' : 'true');
+      });
+      /*
+        CELOWO bez rozwijania na najechanie.
+
+        Rozwiniecie powieksza stopke, a panel ma stala wysokosc - kurczy sie
+        wiec dziennik rozmowy i CALY pasek ze znaczkiem przesuwa sie w gore,
+        spod kursora. Leci wtedy `mouseleave`, tresc sie zwija, pasek wraca pod
+        kursor, leci `mouseenter` - i stopka miga bez konca. Zostaje klikniecie
+        i klawiatura, czyli intencja zamiast przypadkowego przejechania myszka.
+      */
+      return { przycisk: przycisk, tresc: pole };
+    }
+
+    var rodo = znacznik('i', state.options.rodoNote || t('rodo'), t('rodo'));
+    var ai = znacznik('AI', t('aiNota'), t('aiNota'));
+    var rodoTekst = rodo.tresc;
+    var aiNota = ai.tresc;
+    var aiZnak = ai.przycisk;
+
+    notePasek.appendChild(rodo.przycisk);
+    notePasek.appendChild(ai.przycisk);
+
     if (state.options.privacyUrl) {
-      privacy = el('a', 'emma__link', t('polityka'));
+      privacy = el('a', 'emma__link emma__note-link', t('polityka'));
       privacy.href = state.options.privacyUrl;
       privacy.target = '_blank';
       privacy.rel = 'noopener';
-      note.appendChild(doc.createTextNode(' '));
-      note.appendChild(privacy);
+      notePasek.appendChild(privacy);
     }
+
+    note.appendChild(notePasek);
+    note.appendChild(rodo.tresc);
+    note.appendChild(ai.tresc);
 
     /*
       Bramka zgody. Pokazuje sie nad polem wpisywania, dopoki uzytkownik nie potwierdzi,
@@ -1105,9 +1146,17 @@
     panel.appendChild(header);
     panel.appendChild(log);
     panel.appendChild(ocena);
-    panel.appendChild(chips);
     panel.appendChild(zgoda);
     panel.appendChild(form);
+    /*
+      Podpowiedzi leza POD polem pisania, a nie nad nim.
+
+      Sa propozycja nastepnego kroku, a nie czescia przebiegu rozmowy - naleza
+      wiec do strefy, w ktorej uzytkownik dziala, a nie do tej, ktora czyta.
+      Nad polem wcinaly sie miedzy odpowiedz a pole pisania i rozbijaly watek;
+      pod nim czytaja sie jak podsuniete warianty pytania, ktore wlasnie ma napisac.
+    */
+    panel.appendChild(chips);
     panel.appendChild(note);
     panel.appendChild(live);
 
@@ -1123,7 +1172,7 @@
       jezykPrzycisk: jezykPrzycisk, jezykPrzyciskTekst: jezykPrzyciskTekst, jezykLista: jezykLista,
       ocena: ocena, ocenaMiny: ocenaMiny, ocenaTytul: ocenaTytul,
       tabLabel: tabLabel, status: status, jezykEtykieta: jezykEtykieta,
-      koszEtykieta: koszEtykieta, rodoTekst: rodoTekst, aiNota: aiNota, privacy: privacy,
+      koszEtykieta: koszEtykieta, rodoTekst: rodoTekst, aiNota: aiNota, aiZnak: aiZnak, privacy: privacy,
       zgodaPrzed: zgodaPrzed, zgodaSrodek: zgodaSrodek, zgodaPo: zgodaPo, zgodaZasady: zasady,
     };
   }
@@ -1494,12 +1543,31 @@
    * Gdy podpowiedzi sa widoczne - chowa je. Gdy schowane - jest jedynym, co
    * zostaje na pasku, i pozwala je przywrocic.
    */
+  /* Ikony przelacznika - Phosphor Icons (regular), ta sama rodzina co ikony CTA,
+     zeby przycisk nalezal do tego samego zestawu co reszta widgetu. */
+  var IKONA_UKRYJ = 'M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z';
+  var IKONA_POKAZ = 'M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z';
+
   function przyciskPodpowiedzi(wlaczone) {
-    var przycisk = el('button', 'emma__chip-przelacznik', wlaczone ? '×' : t('podpowiedziWlacz'));
+    var przycisk = el('button', 'emma__chip-przelacznik');
     przycisk.type = 'button';
-    przycisk.setAttribute('aria-label', wlaczone ? t('podpowiedziWylacz') : t('podpowiedziWlacz'));
-    przycisk.title = wlaczone ? t('podpowiedziWylacz') : t('podpowiedziWlacz');
+    var opis = wlaczone ? t('podpowiedziWylacz') : t('podpowiedziWlacz');
+    przycisk.setAttribute('aria-label', opis);
+    przycisk.title = opis;
     if (!wlaczone) przycisk.setAttribute('data-wylaczone', 'true');
+
+    var ikona = el('span', 'emma__chip-ikona');
+    ikona.setAttribute('aria-hidden', 'true');
+    // Krzywa wpisana na stale w kodzie, nie z sieci.
+    ikona.innerHTML = '<svg viewBox="0 0 256 256" fill="currentColor" focusable="false">'
+      + '<path d="' + (wlaczone ? IKONA_UKRYJ : IKONA_POKAZ) + '"/></svg>';
+    przycisk.appendChild(ikona);
+
+    // Napis tylko w stanie wylaczonym - wtedy przycisk jest jedyna trescia paska
+    // i musi sam tlumaczyc, co przywraca. Przy widocznych podpowiedziach
+    // wystarczy ikona, zeby nie konkurowac z nimi o uwage.
+    if (!wlaczone) przycisk.appendChild(el('span', null, t('podpowiedziWlacz')));
+
     przycisk.addEventListener('click', function () { ustawPodpowiedzi(!wlaczone); });
     return przycisk;
   }
@@ -1901,6 +1969,7 @@
     odswiezPodpisyMin();
     n.rodoTekst.textContent = t('rodo');
     n.aiNota.textContent = t('aiNota');
+    n.aiZnak.setAttribute('aria-label', t('aiNota'));
     if (n.privacy) n.privacy.textContent = t('polityka');
     n.zgodaPrzed.textContent = t('zgodaPrzed');
     n.zgodaSrodek.textContent = t('zgodaLink');
@@ -2146,7 +2215,19 @@
       doc.documentElement.classList.add('emma-locked');
     }
 
-    if (!state.conversation.messages.length) {
+    /*
+      Powitanie dodajemy tylko wtedy, gdy okno rozmowy jest naprawde puste.
+
+      Sam warunek na `messages.length` nie wystarczal i to byl blad: powitanie
+      wstawiamy z `save: false`, wiec NIGDY nie trafia do historii i licznik
+      wiadomosci zostaje na zerze. Zamkniecie okna nie czysci dziennika, wiec
+      kazde kolejne otwarcie dokladalo nastepne powitanie - po trzech
+      klknieciach uzytkownik mial trzy razy "Dzien dobry!".
+
+      Sprawdzenie zawartosci dziennika lapie oba przypadki naraz: pusta rozmowe
+      i rozmowe odtworzona z pamieci przegladarki.
+    */
+    if (!state.conversation.messages.length && !state.nodes.log.children.length) {
       addMessage('model', powitanie(), { emotion: 'GREETING', save: false });
       if (state.avatar) state.avatar.set('GREETING');
       renderChips(startChips());

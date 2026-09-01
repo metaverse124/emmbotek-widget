@@ -476,7 +476,10 @@
   overflow: hidden;
   box-shadow: 0 0 0 1px rgba(19, 59, 71, .18);
 }
-.emma__flaga svg { display: block; }
+/* Rysunek zawsze wypelnia swoja ramke. Bez tego SVG bral rozmiar z viewBox
+   (20x14) i przy wiekszej ramce zostawal 2-pikselowy goly pasek po prawej
+   i u dolu - obwodka ramki nie pokrywala sie wtedy z krawedzia flagi. */
+.emma__flaga svg { display: block; width: 100%; height: 100%; }
 
 .emma__jezyk-lista {
   position: absolute;
@@ -692,13 +695,13 @@
 
 .emma__chip {
   max-width: 100%;
-  padding: 4px 9px;
+  padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid #CFDBE0;
   background: var(--emma-surface);
   color: var(--emma-text-soft);
   font: inherit;
-  font-size: 10.5px;
+  font-size: 9.5px;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -744,8 +747,10 @@
 
 /* ---------------------------------------------------------------- formularz */
 
+/* Ciasniej niz wczesniej (bylo 10/12): pole pisania to jeden wiersz tekstu,
+   a otaczalo je tyle powietrza, ze zabieralo prawie tyle miejsca co rozmowa. */
 .emma__form {
-  padding: 10px 14px 12px;
+  padding: 7px 14px 8px;
   border-top: 1px solid #E3EAEC;
 }
 
@@ -763,11 +768,14 @@
 .emma__field {
   position: relative;
   display: flex;
-  align-items: end;
-  gap: 8px;
-  padding: 6px 6px 6px 14px;
+  /* Wysrodkowanie w pionie: przy jednym wierszu tekst stoi na osi pola, a nie
+     przy jego dolnej krawedzi. Przy dluzszej wiadomosci pole rosnie w gore
+     i przycisk plynie razem z nim, zamiast zostawac przyklejony do dolu. */
+  align-items: center;
+  gap: 6px;
+  padding: 3px 3px 3px 12px;
   border: 1.5px solid #CFDBE0;
-  border-radius: 22px;
+  border-radius: 20px;
   background: #F7FAF9;
   transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
 }
@@ -783,13 +791,18 @@
 .emma__input {
   flex: 1 1 auto;
   width: 100%;
-  min-height: 32px;
-  max-height: 132px;
-  padding: 7px 0;
+  /* 26 px to dokladnie jeden wiersz przy line-height 1.45 - pole zaczyna sie
+     od jednego wiersza i rosnie dopiero wtedy, gdy tekst tego wymaga. */
+  /* 22 px to jeden wiersz przy line-height 1.4 - pole zaczyna sie od jednego
+     wiersza i rosnie dopiero wtedy, kiedy tekst tego wymaga. Wysokosc calego
+     pudelka wyznacza i tak przycisk wysylki, wiec to on decyduje o minimum. */
+  min-height: 22px;
+  max-height: 116px;
+  padding: 2px 0;
   border: 0;
   background: transparent;
   font: inherit;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--emma-text);
   resize: none;
   overflow-y: hidden;
@@ -832,8 +845,11 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  /* 36 zamiast 40: przycisk wyznaczal minimalna wysokosc calego pola pisania,
+     wiec kazdy jego piksel kosztowal piksel wysokosci pudelka. Na komputerze
+     panel jest skalowany, wiec na ekranie wychodzi i tak okolo 46 px. */
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -1144,16 +1160,60 @@
    note od pola wpisywania, nie robiac z niej osobnego, ciezkiego pasa.
 */
 .emma__note {
-  position: relative;
+  padding: 7px 14px 8px;
+  text-align: center;
+}
+
+/* Jeden wiersz: dwa znaczki i odnosnik. Cala stopka zwinieta ma okolo 20 px
+   zamiast ponad stu, ktore zajmowaly trzy bloki tekstu jeden pod drugim. */
+.emma__note-pasek {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Okragly znaczek: "i" dla noty o zapisie rozmowy, "AI" dla noty o modelu. */
+.emma__znak {
+  flex: 0 0 auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid #C3D2D7;
+  background: var(--emma-surface);
+  color: #7C8D95;
+  font: inherit;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .16s ease, border-color .16s ease, background-color .16s ease;
+}
+.emma__znak:hover { color: var(--emma-base); border-color: var(--emma-base); background: var(--emma-surface-alt); }
+.emma__znak:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+.emma__znak[aria-expanded="true"] { color: var(--emma-base); border-color: var(--emma-base); background: var(--emma-surface-alt); }
+
+.emma__note-link { font-size: 10px; }
+
+/* Tresc rozwija sie wysokoscia. Przy rozwijaniu szerokoscia tekst zawijal sie
+   w pionowa kolumne o zerowej szerokosci i rozpychal stopke, choc byl niewidoczny. */
+.emma__znak-tresc {
   margin: 0;
-  padding: 12px 18px 13px;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--emma-text-soft);
-  text-align: justify;
-  text-align-last: center;
-  -moz-text-align-last: center;
-  background: linear-gradient(180deg, #ECF2E6 0%, #F6FAF3 55%, var(--emma-surface) 100%);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: #6B7B83;
+  transition: max-height .3s ease, opacity .24s ease, margin-top .3s ease;
+}
+.emma__znak-tresc[data-otwarte="true"] {
+  max-height: 6em;
+  margin-top: 5px;
+  opacity: 1;
 }
 
 /* Separator: wlosowa kreska, ktora gasnie po bokach - twarda linia na cala
@@ -1460,7 +1520,11 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
   border-color: var(--emma-accent);
   box-shadow: 0 0 0 3px rgba(217, 164, 65, .45);
 }
-.emma__jezyk-pole--naglowek .emma__flaga {
+/* Powiekszenie dotyczy WYLACZNIE flagi na przycisku w naglowku. Bez wskazania
+   przycisku regula siegala takze flag w rozwinietej liscie - lista jest
+   dzieckiem tego samego kontenera - i tam ramki rosly do 22x16, podczas gdy
+   rysunki zostawaly przy 20x14. */
+.emma__jezyk-pole--naglowek .emma__jezyk-przycisk .emma__flaga {
   width: 22px;
   height: 16px;
 }
@@ -1490,41 +1554,81 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
    slowo "Podpowiedzi", zeby bylo wiadomo, co przywraca. Calkowite zniknięcie
    paska oznaczaloby, ze nie ma jak wrocic do ustawienia.
 */
+
+/* ------------------------------------- przelacznik podpowiedzi (spojny z reszta) */
+/*
+   Przycisk nalezy do tej samej rodziny co chipsy: ten sam promien, ta sama
+   obwodka i ten sam kroj. Rozni go tylko brak wypelnienia i ikona zamiast
+   napisu - ma byc rozpoznawalny jako sterowanie, a nie jako kolejna
+   podpowiedz do klkniecia. Ikona pochodzi z Phosphor Icons, czyli z tego
+   samego zestawu co ikony przyciskow CTA.
+*/
 .emma__chip-przelacznik {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   flex: 0 0 auto;
-  padding: 3px 8px;
+  height: 23px;
+  padding: 0 8px;
   border-radius: 999px;
-  border: 1px dashed #CFDBE0;
-  background: transparent;
+  border: 1px solid #DCE5E8;
+  background: var(--emma-surface);
   color: #93A5AD;
   font: inherit;
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 9.5px;
+  line-height: 1;
   cursor: pointer;
   transition: color .16s ease, border-color .16s ease, background-color .16s ease;
 }
 .emma__chip-przelacznik:hover {
-  color: var(--emma-base);
-  border-color: var(--emma-base);
+  color: var(--emma-pink-deep);
+  border-color: var(--emma-pink);
+  background: #FFF8FB;
+}
+.emma__chip-przelacznik:focus-visible { outline: 3px solid var(--emma-pink-deep); outline-offset: 2px; }
+.emma__chip-ikona { display: inline-flex; }
+.emma__chip-ikona svg { width: 12px; height: 12px; display: block; }
+/* Po wylaczeniu przycisk jest jedyna trescia paska, wiec dostaje pelne
+   wypelnienie i napis - inaczej wygladalby jak zapomniany szczatek. */
+.emma__chip-przelacznik[data-wylaczone="true"] {
+  color: var(--emma-text-soft);
+  border-color: #CFDBE0;
   background: var(--emma-surface-alt);
 }
-.emma__chip-przelacznik:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
-/* Po wylaczeniu przycisk jest jedyna trescia paska - wtedy moze byc odrobine
-   bardziej widoczny, bo pelni role wlacznika, a nie tylko odnosnika obok. */
-.emma__chip-przelacznik[data-wylaczone="true"] {
-  border-style: solid;
-  color: var(--emma-text-soft);
+
+/* ------------------------------------------------ znaczek systemu AI */
+/*
+   Informacja o generowaniu odpowiedzi przez model jezykowy, zwinieta do
+   okraglego znaczka "AI". Rozwija sie na klikniecie, najechanie i fokus.
+
+   Sam znaczek juz spelnia wymog przejrzystosci - mowi, ze po drugiej stronie
+   jest system AI. Pelne zdanie jest o jedno klikniecie dalej, zamiast zajmowac
+   na stale dwa wiersze stopki. Niezwinieta wersja stoi w stopce strony
+   i w polityce prywatnosci.
+*/
+/* --------------------------------------------- glebia okienka maskotki */
+/*
+   Okragle okienko z maskotka dostaje poswiate i cien, zeby czytalo sie jako
+   wypukly medalion, a nie plaska dziura w tle. Trzy warstwy naraz:
+   miekka aureola na zewnatrz, waski jasny rant u gory od srodka (swiatlo pada
+   z gory) i ciemniejsze przyciemnienie u dolu od srodka. Ta sama zasada,
+   co przy cieniu calego panelu.
+*/
+.emma__avatar {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .16),
+    0 0 18px 2px rgba(217, 164, 65, .28),
+    0 6px 14px rgba(6, 32, 40, .38),
+    inset 0 2px 4px rgba(255, 255, 255, .30),
+    inset 0 -3px 6px rgba(6, 32, 40, .34);
 }
 
-/*
-   Obowiazkowa informacja o generowaniu odpowiedzi przez model jezykowy
-   (AI Act, art. 50). Najdrobniejszy druk w calym widgecie - to przypis,
-   nie tresc - ale bez chowania i bez wygaszania do nieczytelnosci:
-   kontrast wzgledem tla stopki pozostaje powyzej 4,5:1.
-*/
-.emma__note-ai {
-  font-size: 9.5px;
-  line-height: 1.35;
-  color: #6B7B83;
-  letter-spacing: .01em;
+/* Na zakladce tlo jest jasne, wiec aureola musi byc ciemniejsza, a nie zlota -
+   zlota poswiata na bieli po prostu znika. */
+.emma__tab-avatar {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .35),
+    0 4px 12px rgba(6, 32, 40, .30),
+    inset 0 2px 4px rgba(255, 255, 255, .55),
+    inset 0 -3px 6px rgba(6, 32, 40, .16);
 }
