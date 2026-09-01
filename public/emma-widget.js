@@ -870,7 +870,17 @@
     var headText = el('div', 'emma__headtext');
     var title = el('p', 'emma__title', state.options.title);
     title.id = 'emma-title';
-    var status = el('p', 'emma__status', state.options.status || t('status'));
+    /*
+      Podtytul to dwa osobne elementy: czesc stala i dygresja. Podzial jest
+      konieczny, bo dygresja ma po wyslaniu pierwszego pytania lagodnie zgasnac -
+      a przezroczystosc da sie animowac tylko na wlasnym elemencie. Przy jednym
+      wspolnym wezle gaslby caly podtytul razem z nazwa asystenta.
+    */
+    var status = el('p', 'emma__status');
+    var statusBaza = el('span', null, state.options.status || t('status'));
+    var statusDygresja = el('span', 'emma__status-dygresja');
+    status.appendChild(statusBaza);
+    status.appendChild(statusDygresja);
     headText.appendChild(title);
     // Podtytul NIE siedzi obok tytulu, tylko w osobnym wierszu pod calym naglowkiem.
     // Zmierzone: przy awatarze 102 px na tekst zostaje 130 px, a "Asystent eMMa
@@ -1171,7 +1181,7 @@
       zgoda: zgoda, zgodaPole: zgodaPole,
       jezykPrzycisk: jezykPrzycisk, jezykPrzyciskTekst: jezykPrzyciskTekst, jezykLista: jezykLista,
       ocena: ocena, ocenaMiny: ocenaMiny, ocenaTytul: ocenaTytul,
-      tabLabel: tabLabel, status: status, jezykEtykieta: jezykEtykieta,
+      tabLabel: tabLabel, status: status, statusBaza: statusBaza, statusDygresja: statusDygresja, jezykEtykieta: jezykEtykieta,
       koszEtykieta: koszEtykieta, rodoTekst: rodoTekst, aiNota: aiNota, aiZnak: aiZnak, privacy: privacy,
       zgodaPrzed: zgodaPrzed, zgodaSrodek: zgodaSrodek, zgodaPo: zgodaPo, zgodaZasady: zasady,
     };
@@ -1430,13 +1440,20 @@
    */
   function odswiezStatus() {
     zatrzymajStatus();
-    var podstawa = state.options.status || t('status');
-    state.nodes.status.textContent = podstawa;
+    state.nodes.statusBaza.textContent = state.options.status || t('status');
+    state.nodes.statusDygresja.textContent = '';
+    state.nodes.statusDygresja.removeAttribute('data-znika');
 
     var dopisek = losowaDygresja();
     if (!dopisek) return;
 
-    var pelny = ' — ' + dopisek;
+    /*
+      Trzy kropki na koncu kazdej dygresji. Doklejamy je tutaj, a nie do
+      dwunastu wpisow razy dziewiec jezykow - jedno miejsce zamiast stu osmiu.
+      Sa to trzy osobne znaki, a nie wielokropek jako jeden glif: przy pisaniu
+      na maszynie pojawiaja sie po kolei i zdanie ladnie wybrzmiewa.
+    */
+    var pelny = ' — ' + dopisek + '...';
     var bezRuchu = false;
     try {
       bezRuchu = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1445,17 +1462,37 @@
     var opoznienie = 3000 + Math.floor(Math.random() * 2000);
     timeryStatusu.push(global.setTimeout(function () {
       if (bezRuchu) {
-        state.nodes.status.textContent = podstawa + pelny;
+        state.nodes.statusDygresja.textContent = pelny;
         return;
       }
       var znak = 0;
       var stukanie = global.setInterval(function () {
         znak += 1;
-        state.nodes.status.textContent = podstawa + pelny.slice(0, znak);
+        state.nodes.statusDygresja.textContent = pelny.slice(0, znak);
         if (znak >= pelny.length) global.clearInterval(stukanie);
       }, 42);
       timeryStatusu.push(stukanie);
     }, opoznienie));
+  }
+
+  /**
+   * Gasi dygresje po wyslaniu pierwszego pytania.
+   *
+   * Zart jest powitaniem, a nie stalym elementem naglowka - gdy rozmowa juz
+   * ruszyla, przestaje byc zabawny i zaczyna zabierac miejsce nad trescia.
+   * Znika lagodnie, a nie skokiem, zeby nie wygladalo na usterke; tekst
+   * kasujemy dopiero po wygaszeniu, inaczej podtytul skroci sie w polowie
+   * animacji.
+   */
+  function schowajDygresje() {
+    zatrzymajStatus();
+    var wezel = state.nodes.statusDygresja;
+    if (!wezel || !wezel.textContent) return;
+    wezel.setAttribute('data-znika', 'true');
+    timeryStatusu.push(global.setTimeout(function () {
+      wezel.textContent = '';
+      wezel.removeAttribute('data-znika');
+    }, 700));
   }
 
   /**
@@ -1719,6 +1756,7 @@
       return;
     }
 
+    schowajDygresje();          // rozmowa ruszyla - zart ustepuje miejsca tresci
     state.busy = true;
     state.nodes.send.disabled = true;
     state.nodes.chips.innerHTML = '';

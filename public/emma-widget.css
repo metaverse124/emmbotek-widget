@@ -1632,3 +1632,11 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
     inset 0 2px 4px rgba(255, 255, 255, .55),
     inset 0 -3px 6px rgba(6, 32, 40, .16);
 }
+
+/* Dygresja w podtytule gasnie po wyslaniu pierwszego pytania. Wlasny element
+   jest tu konieczny: przy wspolnym wezle z nazwa asystenta gaslby caly podtytul. */
+.emma__status-dygresja {
+  opacity: 1;
+  transition: opacity .6s ease;
+}
+.emma__status-dygresja[data-znika="true"] { opacity: 0; }
