@@ -9,6 +9,13 @@
   --emma-base-strong: #0D2B34;
   --emma-accent: #D9A441;
   --emma-accent-strong: #B5822A;
+  /* Roz pudrowy strony (src/index.css: "roz pudrowy #EAA1C6 - akcent, ceny").
+     `deep` i `ink` to przyciemnienia do obramowan i tekstu - sam #EAA1C6 jest
+     za jasny na napis. */
+  --emma-pink: #EAA1C6;
+  --emma-pink-soft: #F6C8DE;
+  --emma-pink-deep: #C2537F;
+  --emma-pink-ink: #4A1B31;
   --emma-surface: #FFFFFF;
   --emma-surface-alt: #F3F6F7;
   --emma-text: #16242A;
@@ -156,7 +163,18 @@
   flex-direction: column;
   background: var(--emma-surface);
   border-radius: var(--emma-radius);
-  box-shadow: var(--emma-shadow);
+  /*
+     Glebia budowana warstwami, a nie jednym duzym cieniem: waski cien kontaktowy
+     tuz pod krawedzia, szeroki i miekki dalej, do tego jasny rant u gory i ciemny
+     u dolu od srodka. Dzieki temu panel wyglada, jakby lezal NAD strona, a nie byl
+     do niej doklejony.
+  */
+  box-shadow:
+    0 1px 2px rgba(19, 59, 71, .16),
+    0 8px 20px rgba(19, 59, 71, .18),
+    0 28px 60px -12px rgba(19, 59, 71, .34),
+    inset 0 1px 0 rgba(255, 255, 255, .55),
+    inset 0 -1px 0 rgba(19, 59, 71, .12);
   overflow: hidden;
   animation: emma-panel-in .22s ease-out;
 }
@@ -172,8 +190,10 @@
 
 .emma__header {
   display: flex;
+  flex-wrap: wrap;                 /* podtytul schodzi do wlasnego wiersza */
   align-items: center;
   gap: 14px;
+  row-gap: 0;                      /* odstep wiersza ustawia margines podtytulu */
   padding: 12px 14px;
   background: var(--emma-base);
   color: var(--emma-on-dark);
@@ -196,19 +216,55 @@
    na piec linijek i caly naglowek puchl. Przyciecie trzyma stala wysokosc niezaleznie
    od tego, co dzieje sie obok - i przy okazji ratuje waskie panele.
 */
+/*
+   Kroj naglowka: Lustria - ta sama, ktora tworzy logo eMMa Studio. Uzywamy jej
+   WYLACZNIE tutaj, w tytule i podtytule panelu, zeby naglowek czytal sie jak
+   podpis marki, a nie jak kolejny pasek interfejsu. Reszta widgetu zostaje przy
+   kroju systemowym - jest go duzo wiecej i musi obsluzyc dziewiec jezykow.
+
+   Wlasna kopia lezy obok arkusza, ale w stosie jest DRUGA. Gdy widget stoi na
+   emmastudio.pl, strona ma juz zadeklarowana "Lustria" - przegladarka siega po
+   nia i drugiego pliku nie pobiera. Poza strona rezerwowa kopia wchodzi do gry.
+
+   Lustria pokrywa lacinke z polskimi znakami. Cyrylica i hangul (rosyjski,
+   ukrainski, koreanski) spadaja na Lore i kroje systemowe - dobor kroju idzie
+   znak po znaku, wiec taki podtytul po prostu wyglada jak reszta widgetu.
+*/
+@font-face {
+  font-family: "EmmbotekLogo";
+  src: url("lustria.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 .emma__headtext { flex: 1 1 auto; min-width: 0; }
 .emma__title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-family: "Lustria", "EmmbotekLogo", "Lora", Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 400;                /* Lustria ma jedna grubosc - pogrubienie by ja zniekształcilo */
+  letter-spacing: .01em;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/*
+   Podtytul zajmuje caly wiersz pod naglowkiem (`flex: 1 0 100%` w kontenerze
+   z `flex-wrap`). Obok awatara zostawalo dla niego 130 px przy potrzebnych 272,
+   wiec urywal sie na "Asystent eMMa S...". Wlasny wiersz daje pelne 348 px.
+   Cienka kreska u gory oddziela go od tytulu, zeby naglowek nie zlal sie w blok.
+*/
 .emma__status {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: #BFD6DD;
+  flex: 1 0 100%;
+  margin: 8px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  font-family: "Lustria", "EmmbotekLogo", "Lora", Georgia, "Times New Roman", serif;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: #CBDEE4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -334,7 +390,7 @@
   font: inherit;
   font-size: 12px;
   color: var(--emma-text);
-  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  cursor: url("kursor-lapka.svg") 12 8, pointer !important;
   transition: border-color .16s ease, box-shadow .16s ease;
 }
 .emma__jezyk-przycisk:hover { border-color: #AFC2C9; }
@@ -399,7 +455,7 @@
   font: inherit;
   font-size: 12.5px;
   color: var(--emma-text);
-  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  cursor: url("kursor-lapka.svg") 12 8, pointer !important;
   transition: background-color .14s ease;
 }
 .emma__jezyk-opcja:hover,
@@ -494,31 +550,62 @@
 
 .emma__ctas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
+/*
+   Przyciski w rozu pudrowym #EAA1C6 - tym samym, ktorym strona wyroznia ceny
+   i akcenty. Roz jest jasny, wiec tekst musi byc ciemny: sliwka #4A1B31 daje
+   na jasnym tle ponad 10:1, a na wypelnieniu rozem ok. 7:1. Zloty akcent
+   zostaje reszcie widgetu (obramowania, podswietlenia) - CTA ma sie wybijac.
+
+   Ikona siedzi we wlasnym kolku wypelnionym mocniejszym rozem. Dzieki temu
+   przycisk czyta sie jako "ikona + etykieta", a nie jako napis z doklejonym
+   znaczkiem, i ma ten sam rytm niezaleznie od dlugosci tlumaczenia.
+*/
 .emma__cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 14px;
+  gap: 9px;
+  padding: 7px 15px 7px 7px;
   border-radius: 999px;
-  border: 1.5px solid var(--emma-accent);
-  background: #FFF8EA;
-  color: #4A3306;
+  border: 1.5px solid var(--emma-pink);
+  background: linear-gradient(180deg, #FFF6FA 0%, #FDEAF3 100%);
+  color: var(--emma-pink-ink);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
+  box-shadow: 0 1px 2px rgba(122, 40, 74, .08);
   animation: emma-cta-in .34s cubic-bezier(.2, .9, .3, 1.2) backwards;
   animation-delay: var(--emma-cta-delay, 0ms);
-  transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+  transition: transform .16s ease, background-color .16s ease, border-color .16s ease,
+              box-shadow .16s ease;
 }
 .emma__cta:hover {
-  background: var(--emma-accent);
-  color: #241800;
+  background: linear-gradient(180deg, var(--emma-pink-soft) 0%, var(--emma-pink) 100%);
+  border-color: var(--emma-pink-deep);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(181, 130, 42, .28);
+  box-shadow: 0 8px 18px rgba(194, 83, 127, .30);
 }
-.emma__cta:focus-visible { outline: 3px solid var(--emma-base); outline-offset: 2px; }
-.emma__cta-icon { font-size: 15px; transition: transform .2s ease; }
-.emma__cta:hover .emma__cta-icon { transform: scale(1.15) rotate(-6deg); }
+.emma__cta:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(194, 83, 127, .26); }
+.emma__cta:focus-visible { outline: 3px solid var(--emma-pink-deep); outline-offset: 2px; }
+
+.emma__cta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--emma-pink-soft);
+  color: var(--emma-pink-deep);
+  transition: transform .2s cubic-bezier(.2, 1.3, .5, 1), background-color .16s ease,
+              color .16s ease;
+}
+.emma__cta-icon svg { width: 16px; height: 16px; display: block; }
+.emma__cta:hover .emma__cta-icon {
+  background: var(--emma-surface);
+  color: var(--emma-pink-deep);
+  transform: scale(1.12);
+}
 
 @keyframes emma-cta-in {
   from { opacity: 0; transform: translateY(8px) scale(.96); }
@@ -543,6 +630,39 @@
 }
 .emma__chip:hover { border-color: var(--emma-base); color: var(--emma-base); background: var(--emma-surface-alt); }
 .emma__chip:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+
+/*
+   Chipsy kontekstowe - pytania, ktore Emmbotek podsuwa PO odpowiedzi, wyprowadzone
+   z tego, co wlasnie powiedzial. Odrozniamy je od chipsow startowych rozowym
+   zabarwieniem i strzalka, bo pelnia inna role: nie otwieraja rozmowy, tylko
+   ciagna biezacy watek. Bez tego rozroznienia wygladaly identycznie i nie bylo
+   widac, ze tresc paska sie zmienila.
+*/
+.emma__chip--dalej {
+  border-color: var(--emma-pink);
+  background: linear-gradient(180deg, #FFF8FB 0%, #FDEFF6 100%);
+  color: var(--emma-pink-ink);
+  animation: emma-chip-in .3s cubic-bezier(.2, .9, .3, 1.2) backwards;
+}
+.emma__chip--dalej::before {
+  content: "\2192";                /* strzalka w prawo - "ciagnij dalej" */
+  margin-right: 6px;
+  color: var(--emma-pink-deep);
+  font-weight: 700;
+}
+.emma__chip--dalej:hover {
+  border-color: var(--emma-pink-deep);
+  background: linear-gradient(180deg, var(--emma-pink-soft) 0%, var(--emma-pink) 100%);
+  color: var(--emma-pink-ink);
+}
+.emma__chip--dalej:focus-visible { outline-color: var(--emma-pink-deep); }
+.emma__chips[data-kontekstowe="true"] .emma__chip--dalej:nth-child(2) { animation-delay: .07s; }
+.emma__chips[data-kontekstowe="true"] .emma__chip--dalej:nth-child(3) { animation-delay: .14s; }
+
+@keyframes emma-chip-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* ---------------------------------------------------------------- formularz */
 
@@ -598,7 +718,7 @@
 }
 .emma__input:focus { outline: none; }
 .emma__input::placeholder { color: #8A9AA1; }
-.emma__input:disabled { color: #8A9AA1; cursor: not-allowed; }
+.emma__input:disabled { color: #8A9AA1; cursor: not-allowed !important; }
 .emma__field:has(.emma__input:disabled) { background: #F0F3F2; }
 
 /*
@@ -652,7 +772,7 @@
     0 1px 2px rgba(19, 59, 71, .28),
     inset 0 2px 4px rgba(0, 0, 0, .3);
 }
-.emma__send:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.emma__send:disabled { opacity: .45; cursor: not-allowed !important; transform: none; box-shadow: none; }
 .emma__send[data-pusty="true"] { opacity: .45; box-shadow: 0 1px 3px rgba(19, 59, 71, .18); }
 .emma__send:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
 .emma__send svg { width: 19px; height: 19px; display: block; margin-left: 1px; }
@@ -665,9 +785,12 @@
    emocjonalnych - uzycie ich tutaj jest spojne z reszta i czytelne bez tlumaczenia
    w kazdym z dziewieciu jezykow.
 */
+/* Weższe marginesy i boczne wypelnienie niz w reszcie widgetu - piec min po 70 px
+   potrzebuje 350 px, a panel ma 380 px. Inaczej ostatnia mina wychodzilaby poza
+   ramke albo trzeba by je zmniejszyc ponizej zamowionego rozmiaru. */
 .emma__ocena {
-  margin: 0 14px 8px;
-  padding: 10px 12px 12px;
+  margin: 0 8px 8px;
+  padding: 10px 6px 12px;
   border: 1px solid #D8E4DA;
   border-radius: 14px;
   background: linear-gradient(180deg, #F3F8F0 0%, #FBFDFA 100%);
@@ -675,31 +798,104 @@
 }
 .emma__ocena[hidden] { display: none; }
 .emma__ocena-tytul { margin: 0 0 8px; font-size: 12.5px; font-weight: 700; color: var(--emma-text); }
-.emma__ocena-miny { display: flex; justify-content: center; gap: 4px; }
+/* Gorny odstep robi miejsce na podpis, ktory wysuwa sie ponad miny. Bez niego
+   ramka podpisu wychodzilaby poza panel oceny i zostawala przycieta. */
+.emma__ocena-miny {
+  display: flex;
+  justify-content: center;
+  gap: 0;                          /* odstep robi wewnetrzne wypelnienie min */
+  padding-top: 30px;
+}
 
 .emma__ocena-mina {
-  width: 46px;
-  height: 46px;
-  padding: 2px;
+  position: relative;              /* uklad odniesienia dla podpisu */
+  /* Bazowo 70 px - bylo 46, czyli o 52% wiecej. `flex: 0 1` pozwala minom zejsc
+     nizej na waskim telefonie (panel na calą szerokosc), zamiast wypychac
+     ostatnia poza ekran. */
+  flex: 0 1 70px;
+  width: 70px;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  padding: 3px;
   border: 2px solid transparent;
   border-radius: 50%;
   background: transparent;
-  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  cursor: url("kursor-lapka.svg") 12 8, pointer !important;
   /* Miny sa domyslnie przygaszone i szare - dopiero najechanie wydobywa kolor
      i powieksza wybor. Dzieki temu widac, ktora mine sie wskazuje. */
   filter: grayscale(.55);
   opacity: .75;
-  transition: transform .16s ease, filter .16s ease, opacity .16s ease, border-color .16s ease;
+  transition: transform .2s cubic-bezier(.2, 1.3, .5, 1), filter .16s ease,
+              opacity .16s ease, border-color .16s ease;
 }
 .emma__ocena-mina:hover,
 .emma__ocena-mina:focus-visible {
-  transform: scale(1.18);
+  transform: scale(1.28);
   filter: none;
   opacity: 1;
-  border-color: var(--emma-accent);
+  border-color: var(--emma-pink);
   outline: none;
+  z-index: 2;                      /* powiekszona mina nad sasiadkami */
 }
 .emma__ocena-obrazek { width: 100%; height: 100%; border-radius: 50%; display: block; }
+.emma__ocena-cyfra { font-weight: 700; font-size: 18px; color: var(--emma-text-soft); }
+
+/*
+   Podpis emocji we wlasnej ramce nad mina. Zastapil systemowa podpowiedz, ktora
+   pokazywala robocza nazwe pozy z manifestu - wygladalo to jak nazwa pliku.
+   Wlasna ramka pojawia sie od razu (dymek systemowy czeka ok. sekundy), trzyma
+   sie stylu widgetu i - co najwazniejsze - idzie przez tabele tlumaczen, wiec
+   mowi jezykiem wybranej rozmowy.
+*/
+.emma__ocena-podpis {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px) scale(.96);
+  transform-origin: bottom center;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--emma-pink);
+  background: var(--emma-surface);
+  color: var(--emma-pink-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 6px 14px rgba(74, 27, 49, .16);
+  opacity: 0;
+  pointer-events: none;            /* podpis nie moze przechwycic kliniecia w mine */
+  transition: opacity .16s ease, transform .18s cubic-bezier(.2, 1.3, .5, 1);
+}
+/* dziobek ramki */
+.emma__ocena-podpis::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 7px;
+  height: 7px;
+  margin-left: -4px;
+  margin-top: -4px;
+  transform: rotate(45deg);
+  background: var(--emma-surface);
+  border-right: 1px solid var(--emma-pink);
+  border-bottom: 1px solid var(--emma-pink);
+}
+.emma__ocena-mina:hover .emma__ocena-podpis,
+.emma__ocena-mina:focus-visible .emma__ocena-podpis {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+/* Skrajne miny: podpis trzyma sie krawedzi panelu, zamiast z niej wystawac. */
+.emma__ocena-mina:first-child .emma__ocena-podpis { left: 0; transform: translateY(4px) scale(.96); }
+.emma__ocena-mina:first-child:hover .emma__ocena-podpis,
+.emma__ocena-mina:first-child:focus-visible .emma__ocena-podpis { transform: translateY(0) scale(1); }
+.emma__ocena-mina:first-child .emma__ocena-podpis::after { left: 33px; }
+.emma__ocena-mina:last-child .emma__ocena-podpis { left: auto; right: 0; transform: translateY(4px) scale(.96); }
+.emma__ocena-mina:last-child:hover .emma__ocena-podpis,
+.emma__ocena-mina:last-child:focus-visible .emma__ocena-podpis { transform: translateY(0) scale(1); }
+.emma__ocena-mina:last-child .emma__ocena-podpis::after { left: auto; right: 29px; }
 
 /* ------------------------------------------------------------- zgoda na zasady */
 /*
@@ -722,6 +918,23 @@
   line-height: 1.45;
   color: var(--emma-text);
 }
+/* Znikanie po potwierdzeniu: ptaszek zdazy sie pokazac, a dopiero potem bramka
+   zwija sie i gasnie. Bez tego pole wyboru przepadalo, zanim uzytkownik zobaczyl,
+   ze cokolwiek zaznaczyl. */
+.emma__zgoda[data-znika="true"] {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
+  transition: opacity .32s ease, transform .32s ease, max-height .32s ease .06s,
+              padding .32s ease .06s, margin .32s ease .06s, border-width .32s ease .06s;
+}
+.emma__zgoda { max-height: 120px; transition: max-height .32s ease; }
 .emma__zgoda[hidden] { display: none; }
 
 /* Krotkie podswietlenie, gdy ktos probuje wyslac wiadomosc bez zgody -
@@ -731,19 +944,76 @@
   box-shadow: 0 0 0 3px rgba(234, 161, 198, .35);
 }
 
+/*
+   Wlasne pole wyboru zamiast systemowego.
+
+   Systemowy checkbox rysuje przegladarka i ani kursor, ani wyglad zaznaczenia nie
+   zawsze sie do niego stosuja - stad brak lapki na jego powierzchni. Ukrywamy go
+   wiec (zostaje dla klawiatury i czytnikow ekranu), a widoczny kwadracik rysujemy
+   sami przez ::before etykiety.
+*/
+.emma__zgoda,
+.emma__zgoda * { cursor: url("kursor-lapka.svg") 12 8, pointer !important; }
+
 .emma__zgoda-pole {
-  flex: 0 0 auto;
-  width: 17px;
-  height: 17px;
-  margin: 1px 0 0;
-  accent-color: var(--emma-base);
-  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
 }
-.emma__zgoda-tekst { cursor: url("kursor-lapka.svg") 12 8, pointer; }
+
+.emma__zgoda-tekst {
+  position: relative;
+  display: block;
+  padding-left: 26px;
+}
+
+/* kwadracik */
+.emma__zgoda-tekst::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #A9BFB2;
+  border-radius: 5px;
+  background: #fff;
+  transition: background-color .18s ease, border-color .18s ease;
+}
+
+/* ptaszek: rysowany dwoma bokami obroconego prostokata, bez zadnego pliku */
+.emma__zgoda-tekst::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) scale(.4);
+  opacity: 0;
+  transition: opacity .16s ease, transform .18s cubic-bezier(.2, 1.4, .5, 1);
+}
+
+.emma__zgoda-pole:checked + .emma__zgoda-tekst::before {
+  background: var(--emma-base);
+  border-color: var(--emma-base);
+}
+.emma__zgoda-pole:checked + .emma__zgoda-tekst::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+.emma__zgoda-pole:focus-visible + .emma__zgoda-tekst::before {
+  outline: 3px solid var(--emma-accent);
+  outline-offset: 2px;
+}
 
 /* Zablokowane pole i chipsy przed wyrazeniem zgody - widoczne, ale wyraznie nieczynne. */
-.emma__input:disabled { background: #F0F3F2; color: #8A9AA1; cursor: not-allowed; }
-.emma__chips[data-zablokowane="true"] .emma__chip { opacity: .5; cursor: not-allowed; }
+.emma__input:disabled { background: #F0F3F2; color: #8A9AA1; cursor: not-allowed !important; }
+.emma__chips[data-zablokowane="true"] .emma__chip { opacity: .5; cursor: not-allowed !important; }
 
 /*
    Stopka informacyjna RODO.
@@ -936,6 +1206,16 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
    tego, czy widget lezy w /emmbotek/, czy gdzie indziej.
    Punkt aktywny 12 8 to czubek gornego lewego palca.
    `pointer` na koncu to zapas dla przegladarek, ktore odrzuca plik SVG.
+
+   `!important` NIE jest tu skrotem - jest konieczne. Widget jest goscem na cudzej
+   stronie, a emmastudio.pl ustawia wlasny kursor (koniczyne) regula o wysokiej
+   specyficznosci: `a[href], label[for], input[type="checkbox"]:not(:disabled), ...`.
+   Selektor `.emma__zgoda *` ma specyficznosc (0,1,0) i przegrywa z `label[for]`
+   (0,1,1) - zmierzone na zywej stronie: etykieta zgody, ukryty checkbox i odnosniki
+   dostawaly koniczyne zamiast lapki. Podbijanie specyficznosci gonilo by tylko
+   biezaca wersje arkusza strony; `!important` wygrywa z kazda.
+   Dlatego stany "nieczynne" (`not-allowed`) tez sa `!important` - inaczej lapka
+   pojawilaby sie na zablokowanym polu pisania i chipsach.
 */
 .emma__tab,
 .emma__send:not(:disabled),
@@ -945,5 +1225,80 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
 .emma__link,
 .emma button:not(:disabled),
 .emma [role="button"] {
-  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  cursor: url("kursor-lapka.svg") 12 8, pointer !important;
+}
+
+/* ----------------------------------------------------- reakcja na ocene */
+/*
+   Warstwa swietowania po ocenie rozmowy. Lezy nad cala strona, a nie w panelu
+   czatu - stad wlasny prefiks `emma-swieto` zamiast `emma__`: to jedyny element
+   widgetu, ktory celowo zyje poza jego korzeniem.
+
+   `pointer-events: none` jest tu warunkiem koniecznym, nie ozdoba. Warstwa
+   przykrywa cala strone, wiec bez tego przez siedem sekund nie dalo by sie
+   kliknac w zaden odnosnik pod spodem.
+*/
+.emma-swieto {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483100;             /* nad panelem czatu (2147483000) */
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .85s ease;
+}
+.emma-swieto[data-gasnie="true"] { opacity: 0; }
+
+/* Pojedynczy kawalek konfetti. Trasa i tempo przychodza ze zmiennych ustawianych
+   w JS przy tworzeniu, zeby kazdy kawalek lecial inaczej. */
+.emma-swieto__kawalek {
+  position: absolute;
+  top: -6vh;
+  display: block;
+  will-change: transform, opacity;
+  animation: emma-konfetti var(--emma-lot, 4s) linear var(--emma-zwloka, 0s) forwards;
+}
+
+@keyframes emma-konfetti {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  85% { opacity: 1; }
+  to {
+    opacity: 0;
+    transform: translate3d(var(--emma-znos, 0), 106vh, 0) rotate(var(--emma-obrot, 360deg));
+  }
+}
+
+/*
+   Pozegnalna lapka przy ocenie 1-2. Ten sam rysunek, co kursor widgetu - macha
+   z punktu obrotu u dolu, wiec rusza sie "nadgarstkiem", a nie caly obrazek.
+*/
+.emma-swieto__lapka {
+  position: absolute;
+  left: 50%;
+  bottom: 12vh;
+  width: 132px;
+  height: 132px;
+  margin-left: -66px;
+  transform-origin: 50% 85%;
+  filter: drop-shadow(0 10px 22px rgba(19, 59, 71, .28));
+  animation: emma-lapka-wejscie .42s cubic-bezier(.2, 1.3, .5, 1) backwards,
+             emma-lapka-macha 1.05s ease-in-out .42s 2;
+}
+
+@keyframes emma-lapka-wejscie {
+  from { opacity: 0; transform: translateY(28px) scale(.8); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes emma-lapka-macha {
+  0%, 100% { transform: rotate(-16deg); }
+  50%      { transform: rotate(16deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Zabezpieczenie na wypadek, gdyby warstwa jednak powstala - JS sprawdza to
+     samo i zwykle w ogole jej nie tworzy. */
+  .emma-swieto { display: none; }
 }

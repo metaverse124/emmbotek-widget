@@ -47,6 +47,56 @@
    * Emmbotek ma juz czternascie stanow emocjonalnych; uzycie ich do oceny jest
    * spojne z reszta i czytelne bez tlumaczenia w kazdym jezyku.
    */
+  /*
+     Ikony przyciskow CTA - Phosphor Icons (regular), licencja MIT.
+     https://phosphoricons.com  |  https://github.com/phosphor-icons/core
+
+     Wczesniej byly tu emoji. Kazdy system rysuje je po swojemu - na Windowsie
+     wychodzily plaskie i kolorowe, na Androidzie zupelnie inne, a rozmiar
+     skakal miedzy przyciskami. Krzywe SVG dziedzicza kolor tekstu przez
+     `currentColor`, wiec przycisk wyglada tak samo wszedzie i sam sie
+     dostosowuje do stanu najechania.
+
+     Klucz to typ CTA z serwera, wiec ikona nie przychodzi z sieci - nie da sie
+     jej podmienic przez odpowiedz modelu ani przez kanal wiedzy.
+  */
+  var IKONY_CTA = {
+    // polka z ksiazkami - cala oferta
+    VIEW_FULL_OFFER: 'M231.65,194.55,198.46,36.75a16,16,0,0,0-19-12.39L132.65,34.42a16.08,16.08,0,0,0-12.3,19l33.19,157.8A16,16,0,0,0,169.16,224a16.25,16.25,0,0,0,3.38-.36l46.81-10.06A16.09,16.09,0,0,0,231.65,194.55ZM136,50.15c0-.06,0-.09,0-.09l46.8-10,3.33,15.87L139.33,66Zm6.62,31.47,46.82-10.05,3.34,15.9L146,97.53Zm6.64,31.57,46.82-10.06,13.3,63.24-46.82,10.06ZM216,197.94l-46.8,10-3.33-15.87L212.67,182,216,197.85C216,197.91,216,197.94,216,197.94ZM104,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V48A16,16,0,0,0,104,32ZM56,48h48V64H56Zm0,32h48v96H56Zm48,128H56V192h48v16Z',
+    // otwarta ksiazka - pojedynczy kurs
+    VIEW_COURSE: 'M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z',
+    // plecak - oferta dla dzieci
+    VIEW_FOR_CHILDREN: 'M168,40.58V32A24,24,0,0,0,144,8H112A24,24,0,0,0,88,32v8.58A56.09,56.09,0,0,0,40,96V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V96A56.09,56.09,0,0,0,168,40.58ZM112,24h32a8,8,0,0,1,8,8v8H104V32A8,8,0,0,1,112,24Zm56,136H88v-8a8,8,0,0,1,8-8h64a8,8,0,0,1,8,8ZM88,176h48v8a8,8,0,0,0,16,0v-8h16v40H88Zm112,40H184V152a24,24,0,0,0-24-24H96a24,24,0,0,0-24,24v64H56V96A40,40,0,0,1,96,56h64a40,40,0,0,1,40,40V216ZM152,88a8,8,0,0,1-8,8H112a8,8,0,0,1,0-16h32A8,8,0,0,1,152,88Z',
+    // grupa osob - oferta dla doroslych
+    VIEW_FOR_ADULTS: 'M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z',
+    // budynki - oferta dla firm
+    VIEW_FOR_COMPANIES: 'M240,208H224V96a16,16,0,0,0-16-16H144V32a16,16,0,0,0-24.88-13.32L39.12,72A16,16,0,0,0,32,85.34V208H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM208,96V208H144V96ZM48,85.34,128,32V208H48ZM112,112v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm-32,0v16a8,8,0,0,1-16,0V112a8,8,0,1,1,16,0Zm0,56v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Zm32,0v16a8,8,0,0,1-16,0V168a8,8,0,0,1,16,0Z',
+    // metka - cennik
+    VIEW_PRICE: 'M243.31,136,144,36.69A15.86,15.86,0,0,0,132.69,32H40a8,8,0,0,0-8,8v92.69A15.86,15.86,0,0,0,36.69,144L136,243.31a16,16,0,0,0,22.63,0l84.68-84.68a16,16,0,0,0,0-22.63Zm-96,96L48,132.69V48h84.69L232,147.31ZM96,84A12,12,0,1,1,84,72,12,12,0,0,1,96,84Z',
+    // kalendarz - harmonogram
+    VIEW_SCHEDULE: 'M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z',
+    // biret - kursy egzaminacyjne
+    VIEW_EXAM: 'M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V240a8,8,0,0,0,16,0V199.51a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12ZM128,200c-43.27,0-68.72-21.14-80-33.71V126.4l76.24,40.66a8,8,0,0,0,7.52,0L176,143.47v46.34C163.4,195.69,147.52,200,128,200Zm80-33.75a97.83,97.83,0,0,1-16,14.25V134.93l16-8.53ZM188,118.94l-.22-.13-56-29.87a8,8,0,0,0-7.52,14.12L171,128l-43,22.93L25,96,128,41.07,231,96Z',
+    // megafon - nowa grupa
+    VIEW_NEWS: 'M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z',
+    // artykul - wpis na blogu
+    VIEW_BLOG: 'M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H216V200ZM184,96a8,8,0,0,1-8,8H80a8,8,0,0,1,0-16h96A8,8,0,0,1,184,96Zm0,32a8,8,0,0,1-8,8H80a8,8,0,0,1,0-16h96A8,8,0,0,1,184,128Zm0,32a8,8,0,0,1-8,8H80a8,8,0,0,1,0-16h96A8,8,0,0,1,184,160Z',
+    // kalendarz z ptaszkiem - lekcja probna
+    TRIAL_LESSON: 'M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-38.34-85.66a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L116,164.69l42.34-42.35A8,8,0,0,1,169.66,122.34Z',
+    // kompas - test poziomujacy
+    LEVEL_TEST: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM172.42,72.84l-64,32a8.05,8.05,0,0,0-3.58,3.58l-32,64A8,8,0,0,0,80,184a8.1,8.1,0,0,0,3.58-.84l64-32a8.05,8.05,0,0,0,3.58-3.58l32-64a8,8,0,0,0-10.74-10.74ZM138,138,97.89,158.11,118,118l40.15-20.07Z',
+    // dymek - kontakt z sekretariatem
+    CONTACT: 'M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z',
+    // kartka z olowkiem - formularz
+    FORM: 'M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z',
+    // sluchawka - telefon
+    CALL: 'M144.27,45.93a8,8,0,0,1,9.8-5.66,86.22,86.22,0,0,1,61.66,61.66,8,8,0,0,1-5.66,9.8A8.23,8.23,0,0,1,208,112a8,8,0,0,1-7.73-5.94,70.35,70.35,0,0,0-50.33-50.33A8,8,0,0,1,144.27,45.93Zm-2.33,41.8c13.79,3.68,22.65,12.54,26.33,26.33A8,8,0,0,0,176,120a8.23,8.23,0,0,0,2.07-.27,8,8,0,0,0,5.66-9.8c-5.12-19.16-18.5-32.54-37.66-37.66a8,8,0,1,0-4.13,15.46Zm81.94,95.35A56.26,56.26,0,0,1,168,232C88.6,232,24,167.4,24,88A56.26,56.26,0,0,1,72.92,32.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,109.39,104c-.18.27-.37.52-.57.77L88,129.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,223.88,183.08Zm-15.88-2s-.07,0-.11,0h0l-47-21.05-24.35,20.71a8.44,8.44,0,0,1-.74.56,16,16,0,0,1-15.75,1.14c-18.73-9.05-37.4-27.58-46.46-46.11a16,16,0,0,1,1-15.7,6.13,6.13,0,0,1,.57-.77L96,95.15l-21-47a.61.61,0,0,1,0-.12A40.2,40.2,0,0,0,40,88,128.14,128.14,0,0,0,168,216,40.21,40.21,0,0,0,208,181.07Z',
+    // koperta - e-mail
+    EMAIL: 'M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z',
+    // pinezka - dojazd
+    LOCATION: 'M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z',
+  };
+
   var OCENY = [
     { stopien: 1, emocja: 'SAD', opis: 'Wcale mi nie pomógł' },
     { stopien: 2, emocja: 'CURIOUS', opis: 'Pomógł połowicznie' },
@@ -89,6 +139,11 @@
       "zamknij": "Zamknij okno rozmowy",
       "ocenaTytul": "Jak poszła nam rozmowa?",
       "ocenaDzieki": "Dziękuję za ocenę!",
+      "ocenaMina1": "Wcale mi nie pomógł",
+      "ocenaMina2": "Pomógł połowicznie",
+      "ocenaMina3": "W porządku",
+      "ocenaMina4": "Pomógł",
+      "ocenaMina5": "Bardzo pomógł",
       "blad": "Chwilowo nie mogę się połączyć. Proszę spróbować za moment albo napisać do sekretariatu.",
       "chipsy": [
         "Kurs dla dziecka",
@@ -124,6 +179,11 @@
       "zamknij": "Close the chat window",
       "ocenaTytul": "How did our conversation go?",
       "ocenaDzieki": "Thank you for your feedback!",
+      "ocenaMina1": "Not helpful at all",
+      "ocenaMina2": "Helped a little",
+      "ocenaMina3": "Just fine",
+      "ocenaMina4": "Helpful",
+      "ocenaMina5": "Very helpful",
       "blad": "I can’t connect right now. Please try again in a moment or contact the office.",
       "chipsy": [
         "A course for my child",
@@ -159,6 +219,11 @@
       "zamknij": "Cerrar la ventana de chat",
       "ocenaTytul": "¿Qué tal ha ido nuestra conversación?",
       "ocenaDzieki": "¡Gracias por tu valoración!",
+      "ocenaMina1": "No me ayudó nada",
+      "ocenaMina2": "Me ayudó a medias",
+      "ocenaMina3": "Correcto",
+      "ocenaMina4": "Me ayudó",
+      "ocenaMina5": "Me ayudó muchísimo",
       "blad": "Ahora mismo no puedo conectarme. Inténtalo de nuevo en un momento o escribe a secretaría.",
       "chipsy": [
         "Un curso para mi hijo",
@@ -194,6 +259,11 @@
       "zamknij": "Chatfenster schließen",
       "ocenaTytul": "Wie war unser Gespräch?",
       "ocenaDzieki": "Danke für deine Bewertung!",
+      "ocenaMina1": "Hat gar nicht geholfen",
+      "ocenaMina2": "Hat teilweise geholfen",
+      "ocenaMina3": "Ganz in Ordnung",
+      "ocenaMina4": "Hat geholfen",
+      "ocenaMina5": "Hat sehr geholfen",
       "blad": "Ich kann mich gerade nicht verbinden. Bitte versuche es gleich noch einmal oder schreibe dem Sekretariat.",
       "chipsy": [
         "Kurs für mein Kind",
@@ -229,6 +299,11 @@
       "zamknij": "Fermer la fenêtre de chat",
       "ocenaTytul": "Comment s’est passée notre conversation ?",
       "ocenaDzieki": "Merci pour votre évaluation !",
+      "ocenaMina1": "Ne m’a pas aidé du tout",
+      "ocenaMina2": "M’a aidé à moitié",
+      "ocenaMina3": "Correct",
+      "ocenaMina4": "M’a aidé",
+      "ocenaMina5": "M’a beaucoup aidé",
       "blad": "Je n’arrive pas à me connecter pour le moment. Réessayez dans un instant ou écrivez au secrétariat.",
       "chipsy": [
         "Un cours pour mon enfant",
@@ -264,6 +339,11 @@
       "zamknij": "Chiudi la finestra della chat",
       "ocenaTytul": "Com’è andata la nostra conversazione?",
       "ocenaDzieki": "Grazie per la tua valutazione!",
+      "ocenaMina1": "Non mi ha aiutato affatto",
+      "ocenaMina2": "Mi ha aiutato a metà",
+      "ocenaMina3": "Va bene",
+      "ocenaMina4": "Mi ha aiutato",
+      "ocenaMina5": "Mi ha aiutato molto",
       "blad": "Al momento non riesco a connettermi. Riprova tra un istante oppure scrivi alla segreteria.",
       "chipsy": [
         "Un corso per mio figlio",
@@ -299,6 +379,11 @@
       "zamknij": "Закрыть окно чата",
       "ocenaTytul": "Как прошёл наш разговор?",
       "ocenaDzieki": "Спасибо за оценку!",
+      "ocenaMina1": "Совсем не помог",
+      "ocenaMina2": "Помог наполовину",
+      "ocenaMina3": "Нормально",
+      "ocenaMina4": "Помог",
+      "ocenaMina5": "Очень помог",
       "blad": "Сейчас не удаётся подключиться. Попробуйте через минуту или напишите в секретариат.",
       "chipsy": [
         "Курс для ребёнка",
@@ -334,6 +419,11 @@
       "zamknij": "Закрити вікно чату",
       "ocenaTytul": "Як пройшла наша розмова?",
       "ocenaDzieki": "Дякую за оцінку!",
+      "ocenaMina1": "Зовсім не допоміг",
+      "ocenaMina2": "Допоміг наполовину",
+      "ocenaMina3": "Непогано",
+      "ocenaMina4": "Допоміг",
+      "ocenaMina5": "Дуже допоміг",
       "blad": "Зараз не вдається з’єднатися. Спробуйте за хвилину або напишіть до секретаріату.",
       "chipsy": [
         "Курс для дитини",
@@ -369,6 +459,11 @@
       "zamknij": "채팅 창 닫기",
       "ocenaTytul": "대화는 어떠셨나요?",
       "ocenaDzieki": "평가해 주셔서 감사합니다!",
+      "ocenaMina1": "전혀 도움이 되지 않았어요",
+      "ocenaMina2": "조금 도움이 됐어요",
+      "ocenaMina3": "괜찮았어요",
+      "ocenaMina4": "도움이 됐어요",
+      "ocenaMina5": "아주 큰 도움이 됐어요",
       "blad": "지금은 연결할 수 없습니다. 잠시 후 다시 시도하시거나 사무실로 문의해 주세요.",
       "chipsy": [
         "자녀를 위한 수업",
@@ -613,7 +708,11 @@
     title.id = 'emma-title';
     var status = el('p', 'emma__status', state.options.status || t('status'));
     headText.appendChild(title);
-    headText.appendChild(status);
+    // Podtytul NIE siedzi obok tytulu, tylko w osobnym wierszu pod calym naglowkiem.
+    // Zmierzone: przy awatarze 102 px na tekst zostaje 130 px, a "Asystent eMMa
+    // Studio - odpowiada od razu" potrzebuje 272 px. W jednej linii obok awatara
+    // urywal sie w polowie nazwy szkoly niezaleznie od rozmiaru pisma. Wlasny wiersz
+    // daje mu pelna szerokosc panelu i miesci sie w calosci.
 
     var clearBtn = el('button', 'emma__icon-btn emma__icon-btn--kosz', '');
     clearBtn.type = 'button';
@@ -644,6 +743,7 @@
     header.appendChild(headText);
     header.appendChild(clearBtn);
     header.appendChild(closeBtn);
+    header.appendChild(status);        // zawija sie do wlasnego wiersza (flex-wrap)
 
     var log = el('div', 'emma__log');
     log.setAttribute('role', 'log');
@@ -1013,9 +1113,13 @@
         button.target = '_blank';
         button.rel = 'noopener';
       }
-      if (cta.icon) {
-        var icon = el('span', 'emma__cta-icon', cta.icon);
+      var krzywa = IKONY_CTA[cta.type];
+      if (krzywa) {
+        var icon = el('span', 'emma__cta-icon');
         icon.setAttribute('aria-hidden', 'true');
+        // Krzywa pochodzi z tablicy wpisanej na stale wyzej, nie z odpowiedzi serwera.
+        icon.innerHTML = '<svg viewBox="0 0 256 256" fill="currentColor" focusable="false">'
+          + '<path d="' + krzywa + '"/></svg>';
         button.appendChild(icon);
       }
       button.appendChild(el('span', 'emma__cta-label', cta.label));
@@ -1039,12 +1143,21 @@
     return state.options.startChips || t('chipsy');
   }
 
-  function renderChips(list) {
+  /**
+   * @param {string[]} list etykiety chipsow
+   * @param {{kontekstowe?: boolean}} [opcje] chipsy kontekstowe dostaja strzalke
+   *   i wlasne zabarwienie, zeby bylo widac, ze ciagna watek dalej, a nie
+   *   zaczynaja rozmowe od poczatku
+   */
+  function renderChips(list, opcje) {
+    var kontekstowe = !!(opcje && opcje.kontekstowe);
     state.nodes.chips.innerHTML = '';
+    state.nodes.chips.setAttribute('data-kontekstowe', kontekstowe ? 'true' : 'false');
     if (!list || !list.length) return;
     list.forEach(function (label) {
       var chip = el('button', 'emma__chip', label);
       chip.type = 'button';
+      if (kontekstowe) chip.className = 'emma__chip emma__chip--dalej';
       // Chipsy tez wysylaja pytanie, wiec przed zgoda musza byc nieaktywne -
       // inaczej byloby wejscie do rozmowy z pominieciem bramki.
       chip.disabled = !czyZgoda();
@@ -1179,6 +1292,11 @@
           intent: data.meta && data.meta.intent,
         });
         renderCtas(row, data.cta, { intent: data.meta && data.meta.intent, stage: data.stage });
+        // Podpowiedzi kolejnych pytan wynikaja z tego, co Emmbotek wlasnie powiedzial,
+        // wiec zastepuja chipsy startowe. Gdy model ich nie odda (albo watek sie
+        // domknal), pasek chipsow zostaje pusty - to lepsze niz podsuwanie w kolko
+        // tych samych pytan otwierajacych, ktore nie pasuja juz do rozmowy.
+        renderChips(data.podpowiedzi, { kontekstowe: true });
         announce(data.message);
         saveConversation();
         pokazOcene();
@@ -1245,10 +1363,39 @@
    * wcisnac Enter, zeby wyslac wiadomosc mimo braku zgody. Chipsy tez sa wylaczone,
    * bo one rowniez wysylaja pytanie.
    */
+  /** Uchwyty animacji zwijania bramki zgody - do anulowania przy zmianie zdania. */
+  var timeryZgody = [];
+
+  /**
+   * Przerywa zwijanie bramki zgody. Potrzebne, gdy ktos odznaczy pole w trakcie
+   * animacji - inaczej zaplanowane wczesniej `hidden = true` schowaloby bramke,
+   * ktora wlasnie powinna zostac na ekranie.
+   */
+  function zatrzymajZwijanieZgody() {
+    for (var i = 0; i < timeryZgody.length; i += 1) global.clearTimeout(timeryZgody[i]);
+    timeryZgody.length = 0;
+  }
+
   function odswiezZgode() {
     var zgodzil = czyZgoda();
     state.zgoda = zgodzil;
-    state.nodes.zgoda.hidden = zgodzil;
+    // Po potwierdzeniu bramka nie znika natychmiast. Najpierw przez chwile widac
+    // sam ptaszek (jego animacja trwa 180 ms), dopiero potem calosc lagodnie sie
+    // zwija. Bez tej przerwy oba ruchy szly rownoczesnie i znaczek tylko migal -
+    // uzytkownik nie zdazyl zobaczyc, ze jego wybor zostal przyjety.
+    zatrzymajZwijanieZgody();
+    if (zgodzil && !state.nodes.zgoda.hidden) {
+      timeryZgody.push(global.setTimeout(function () {
+        state.nodes.zgoda.setAttribute('data-znika', 'true');
+        timeryZgody.push(global.setTimeout(function () {
+          state.nodes.zgoda.hidden = true;
+          state.nodes.zgoda.removeAttribute('data-znika');
+        }, 380));
+      }, 260));
+    } else if (!zgodzil) {
+      state.nodes.zgoda.hidden = false;
+      state.nodes.zgoda.removeAttribute('data-znika');
+    }
     state.nodes.input.disabled = !zgodzil;
     state.nodes.send.disabled = !zgodzil || state.busy;
     state.nodes.input.placeholder = zgodzil ? t('pole') : t('poleBlokada');
@@ -1296,12 +1443,31 @@
     n.clear.setAttribute('aria-label', state.koszUzbrojony ? t('potwierdz') : t('wyczysc'));
     n.koszEtykieta.textContent = t('naPewno');
     n.ocenaTytul.textContent = t('ocenaTytul');
+    odswiezPodpisyMin();
     n.rodoTekst.textContent = t('rodo');
     if (n.privacy) n.privacy.textContent = t('polityka');
     n.zgodaPrzed.textContent = t('zgodaPrzed');
     n.zgodaLink.textContent = t('zgodaLink');
     n.zgodaPo.textContent = t('zgodaPo');
     odswiezZgode();
+  }
+
+  /**
+   * Przeklada podpisy min oceny na aktualny jezyk rozmowy.
+   *
+   * Panel ocen powstaje raz, po czwartej odpowiedzi, i potem juz sobie stoi. Gdy
+   * ktos zmienil jezyk przy otwartym panelu, tytul sie tlumaczyl, a podpisy min
+   * zostawaly w poprzednim jezyku - w jednym pudelku byly dwa jezyki naraz.
+   */
+  function odswiezPodpisyMin() {
+    var miny = state.nodes.ocenaMiny.querySelectorAll('.emma__ocena-mina');
+    for (var i = 0; i < miny.length && i < OCENY.length; i += 1) {
+      var pozycja = OCENY[i];
+      var opis = t('ocenaMina' + pozycja.stopien) || pozycja.opis;
+      var podpis = miny[i].querySelector('.emma__ocena-podpis');
+      if (podpis) podpis.textContent = opis;
+      miny[i].setAttribute('aria-label', pozycja.stopien + '/5 - ' + opis);
+    }
   }
 
   /** Odswieza przycisk listy: flaga i nazwa aktualnego jezyka. */
@@ -1409,7 +1575,67 @@
     state.nodes.ocenaTytul.textContent = t('ocenaDzieki');
     if (state.avatar) state.avatar.set(stopien >= 4 ? 'PROUD' : 'EMPATHY');
     announce('Ocena zapisana. Dziękuję.');
+    swietuj(stopien);
     global.setTimeout(function () { state.nodes.ocena.hidden = true; }, 2600);
+  }
+
+  /* ------------------------------------------------- reakcja na ocene */
+
+  /**
+   * Odpowiedz na ocene rozmowy - inna dla pochwaly, inna dla krytyki.
+   *
+   * 3-5: konfetti na calej stronie przez 5 sekund, potem lagodne zaniknięcie.
+   * 1-2: sama machajaca lapka na pozegnanie. Konfetti przy zlej ocenie byloby
+   *      nie na miejscu - ktos wlasnie powiedzial, ze mu nie pomoglismy.
+   *
+   * Warstwa jest `pointer-events: none` i wisi nad strona, wiec nic nie blokuje.
+   * Przy `prefers-reduced-motion` nie robimy nic - to czysta dekoracja, a
+   * regula calego widgetu mowi, ze animacje maja sie wtedy wylaczac.
+   */
+  function swietuj(stopien) {
+    try {
+      if (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!doc.body) return;
+
+      var warstwa = el('div', 'emma-swieto');
+      warstwa.setAttribute('aria-hidden', 'true');
+
+      if (stopien >= 3) {
+        var barwy = ['#EAA1C6', '#F6C8DE', '#D9A441', '#133B47', '#FFFFFF', '#C2537F'];
+        for (var i = 0; i < 90; i += 1) {
+          var kawalek = el('span', 'emma-swieto__kawalek');
+          var s = kawalek.style;
+          s.left = (Math.random() * 100).toFixed(2) + '%';
+          s.background = barwy[i % barwy.length];
+          // Kazdy kawalek leci wlasnym tempem i wlasna trasa - bez tego widac
+          // rowno spadajaca kurtyne zamiast wystrzalu.
+          s.setProperty('--emma-lot', (3.4 + Math.random() * 2.2).toFixed(2) + 's');
+          s.setProperty('--emma-zwloka', (Math.random() * 1.6).toFixed(2) + 's');
+          s.setProperty('--emma-znos', (Math.random() * 220 - 110).toFixed(0) + 'px');
+          s.setProperty('--emma-obrot', (Math.random() * 1080 - 540).toFixed(0) + 'deg');
+          s.width = (6 + Math.random() * 6).toFixed(1) + 'px';
+          s.height = (9 + Math.random() * 8).toFixed(1) + 'px';
+          if (i % 3 === 0) s.borderRadius = '50%';
+          warstwa.appendChild(kawalek);
+        }
+      } else {
+        var lapka = doc.createElement('img');
+        lapka.className = 'emma-swieto__lapka';
+        lapka.src = state.options.assetsBase + 'kursor-lapka.svg';
+        lapka.alt = '';
+        warstwa.appendChild(lapka);
+      }
+
+      doc.body.appendChild(warstwa);
+      // Zdejmujemy warstwe po animacji - inaczej zostawalaby w drzewie strony.
+      var czas = stopien >= 3 ? 7200 : 3400;
+      global.setTimeout(function () {
+        warstwa.setAttribute('data-gasnie', 'true');
+        global.setTimeout(function () {
+          if (warstwa.parentNode) warstwa.parentNode.removeChild(warstwa);
+        }, 900);
+      }, czas);
+    } catch (error) { /* dekoracja nigdy nie moze wywrocic widgetu */ }
   }
 
   function pokazOcene() {
@@ -1418,17 +1644,28 @@
     state.nodes.ocenaMiny.innerHTML = '';
 
     OCENY.forEach(function (pozycja) {
+      var opis = t('ocenaMina' + pozycja.stopien) || pozycja.opis;
       var przycisk = el('button', 'emma__ocena-mina');
       przycisk.type = 'button';
-      przycisk.title = pozycja.opis;
-      przycisk.setAttribute('aria-label', pozycja.stopien + ' z 5 - ' + pozycja.opis);
+      przycisk.setAttribute('aria-label', pozycja.stopien + '/5 - ' + opis);
+
       var mina = messageAvatar(pozycja.emocja);
       if (mina) {
         mina.className = 'emma__ocena-obrazek';
+        // Zdejmujemy podpowiedz systemowa z obrazka. Niosla robocza nazwe pozy
+        // z manifestu ("Emmbotek: r2c4"), ktora wygladala jak nazwa pliku i
+        // przykrywala wlasny podpis ponizej - dymek zagniezdzonego elementu
+        // wygrywa z dymkiem przycisku.
+        mina.removeAttribute('title');
         przycisk.appendChild(mina);
       } else {
-        przycisk.textContent = String(pozycja.stopien);
+        przycisk.appendChild(el('span', 'emma__ocena-cyfra', String(pozycja.stopien)));
       }
+
+      // Podpis w ramce nad mina - pokazuje sie przy najechaniu i przy fokusie
+      // z klawiatury. Idzie przez t(), wiec mowi jezykiem wybranej rozmowy.
+      przycisk.appendChild(el('span', 'emma__ocena-podpis', opis));
+
       przycisk.addEventListener('click', function () { wyslijOcene(pozycja.stopien); });
       state.nodes.ocenaMiny.appendChild(przycisk);
     });
@@ -1467,6 +1704,9 @@
     // Zaproszenie spelnilo swoje zadanie - zakladka przestaje pulsowac na stale.
     zapamietajPoznanie();
 
+    // Panel ma juz swoje wymiary - dopiero teraz da sie policzyc wysokosc pola.
+    updateCounter();
+
     // Token bierzemy z wyprzedzeniem, zeby pierwsze pytanie nie czekalo na dodatkowe
     // zapytanie do serwera.
     pobierzToken(false);
@@ -1499,10 +1739,26 @@
     // Najpierw zerujemy, zeby scrollHeight policzyl sie od nowa - bez tego pole
     // potrafi tylko rosnac i nigdy nie wraca do jednej linijki po skasowaniu tekstu.
     var pole = state.nodes.input;
+
+    // Przy pustym polu NIE pytamy przegladarki o wysokosc tresci.
+    //
+    // Powod: scrollHeight potrafi zwrocic wartosc oderwana od rzeczywistosci -
+    // zmierzone na produkcji 667 px dla pustego pola, przy wyliczonej wysokosci
+    // 35,75 px. Wpisanie takiej liczby rozdymalo pole na cala dozwolona wysokosc.
+    // Puste pole ma znana wysokosc jednej linijki, wiec po prostu oddajemy sterowanie
+    // arkuszowi stylow (min-height) zamiast liczyc cokolwiek.
+    if (!wartosc) {
+      pole.style.height = '';
+      pole.style.overflowY = 'hidden';
+      return;
+    }
+
+    // Ukryty panel nie ma ukladu - pomiar dalby zero i pole zostaloby sciete.
+    if (!pole.offsetParent) return;
+
     pole.style.height = 'auto';
     var wysokosc = Math.min(132, pole.scrollHeight);
     pole.style.height = wysokosc + 'px';
-    // Powyzej gornej granicy pole przestaje rosnac i zaczyna sie przewijac.
     pole.style.overflowY = pole.scrollHeight > 132 ? 'auto' : 'hidden';
   }
 

@@ -235,6 +235,7 @@ export function createChatHandler({
       emotion: parsed.emotion,
       message: parsed.message,
       cta,
+      podpowiedzi: parsed.podpowiedzi ?? [],
       profile: mergedProfile,
       stage: conversationStage(mergedProfile, { turns: turnCount, intent: effectiveIntent }),
       sources: knowledge.slice(0, 3).map((item) => ({

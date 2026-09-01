@@ -111,9 +111,23 @@ CTA (Contextual CTA Engine):
 - Dostepne typy: ${CTA_TYPES.join(', ')}.
 - Jesli nie znasz wlasciwego, aktualnego adresu, NIE proponujesz CTA.`;
 
+const PODPOWIEDZI_RULES = `
+PODPOWIEDZI (pole "podpowiedzi"):
+- To sa pytania UZYTKOWNIKA do Ciebie, nie Twoje pytania do niego. Pisz je w pierwszej
+  osobie tak, jakby wpisal je rozmowca ("Ile trwa jedna lekcja?"), nigdy jako
+  "Czy chcesz...".
+- Dokladnie 2-3 sztuki, kazda do 70 znakow, bez numeracji i bez myslnikow.
+- Maja wynikac z TEGO, co wlasnie powiedziales - pchac watek dalej, a nie zaczynac
+  rozmowe od nowa. Jesli podales cene grupy, dobra podpowiedz pyta o zajecia
+  indywidualne albo o terminy, a nie "Jaka jest oferta?".
+- Nie powtarzaj pytania, ktore uzytkownik wlasnie zadal, ani tresci, ktora juz
+  w pelni omowiles.
+- Pisz je w jezyku rozmowy - tym samym, w ktorym piszesz "message".
+- Jesli watek sie domknal i nic sensownego nie zostalo do zapytania, oddaj pusta tablice.`;
+
 const OUTPUT_FORMAT = `
 FORMAT ODPOWIEDZI - zwracasz wylacznie poprawny JSON, bez bloku kodu i bez komentarza:
-{"message":"[EMOCJA] tresc odpowiedzi","cta":[{"type":"TYP_CTA","label":"Etykieta","target":"/adres/"}],"profil":{"dlaKogo":null,"jezyk":null,"poziom":null,"cel":null,"tryb":null},"intent":"INTENCJA"}
+{"message":"[EMOCJA] tresc odpowiedzi","cta":[{"type":"TYP_CTA","label":"Etykieta","target":"/adres/"}],"podpowiedzi":["Pytanie 1","Pytanie 2"],"profil":{"dlaKogo":null,"jezyk":null,"poziom":null,"cel":null,"tryb":null},"intent":"INTENCJA"}
 Pole "cta" moze byc pusta tablica. W "profil" umieszczasz tylko to, co realnie wynika z rozmowy.
 "target" w CTA moze pochodzic wylacznie z listy DOSTEPNE_CELE_CTA podanej w kontekscie.`;
 
@@ -152,6 +166,7 @@ export function buildSystemPrompt(context = {}) {
     KNOWLEDGE_RULES,
     EMOTION_RULES,
     CTA_RULES,
+    PODPOWIEDZI_RULES,
     `\nJEZYK ROZMOWY: ${jezyk.nazwa} (${jezyk.wlasna}).`
       + (jezyk.kod === 'pl' ? '' : [
         '',

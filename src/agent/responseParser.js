@@ -79,7 +79,31 @@ const pickProfile = (value) => {
 };
 
 /**
- * @returns {{emotion, message, cta, profile, intent, format}}
+ * Podpowiedzi kolejnych pytan - krotkie zdania, ktore uzytkownik moze kliknac,
+ * zeby ciagnac watek dalej.
+ *
+ * Traktujemy je jak kazda inna tresc od modelu: to dane, nie polecenia. Widget
+ * wstawia je przez `textContent`, ale limit dlugosci jest tutaj, bo za dlugi
+ * napis rozwala uklad chipsow, a nie da sie na to poradzic po stronie CSS bez
+ * ucinania w polowie slowa. Trzy sztuki to gorna granica - wiecej zamienia
+ * podpowiedzi w sciane tekstu i przykrywa sama odpowiedz.
+ */
+const pickPodpowiedzi = (value) => {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const tekst = item.replace(/\s+/g, ' ').trim();
+    if (tekst.length < 3 || tekst.length > 70) continue;
+    if (out.some((juz) => juz.toLowerCase() === tekst.toLowerCase())) continue;
+    out.push(tekst);
+    if (out.length === 3) break;
+  }
+  return out;
+};
+
+/**
+ * @returns {{emotion, message, cta, profile, intent, podpowiedzi, format}}
  */
 export function parseModelResponse(raw, { ctaMap = {}, contact = {} } = {}) {
   const parsed = tryParseJson(raw);
@@ -92,6 +116,7 @@ export function parseModelResponse(raw, { ctaMap = {}, contact = {} } = {}) {
       cta: sanitizeModelCtas(parsed.cta, { ctaMap, contact }),
       profile: pickProfile(parsed.profil ?? parsed.profile),
       intent: isIntent(parsed.intent) ? parsed.intent : null,
+      podpowiedzi: pickPodpowiedzi(parsed.podpowiedzi),
       format: 'json',
     };
   }
@@ -105,6 +130,7 @@ export function parseModelResponse(raw, { ctaMap = {}, contact = {} } = {}) {
       cta: [],
       profile: {},
       intent: null,
+      podpowiedzi: [],
       format: 'json-urwany',
     };
   }
@@ -116,6 +142,7 @@ export function parseModelResponse(raw, { ctaMap = {}, contact = {} } = {}) {
     cta: [],
     profile: {},
     intent: null,
+    podpowiedzi: [],
     format: 'text',
   };
 }

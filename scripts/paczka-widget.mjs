@@ -26,7 +26,10 @@ const CEL = path.join(KORZEN, 'dist-widget');
 
 // kursor-lapka.svg jest wskazywany ze srodka emma-widget.css adresem wzglednym,
 // wiec musi lezec obok arkusza - inaczej klikalne elementy traca kursor.
-const PLIKI = ['emma-widget.js', 'emma-widget.css', 'emmbotek-avatar.js', 'kursor-lapka.svg'];
+// Tak samo lustria.woff2 - kroj z logo szkoly, uzywany tylko w naglowku panelu.
+// Wozimy wlasna kopie, zeby widget dzialal takze poza emmastudio.pl; gdy strona
+// ma juz swoja Lustrie, arkusz siega po nia pierwsza i tej kopii nie pobiera.
+const PLIKI = ['emma-widget.js', 'emma-widget.css', 'emmbotek-avatar.js', 'kursor-lapka.svg', 'lustria.woff2'];
 
 await rm(CEL, { recursive: true, force: true });
 await mkdir(path.join(CEL, 'avatars'), { recursive: true });

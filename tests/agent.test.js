@@ -153,3 +153,42 @@ test('ratowanie tresci respektuje znaki ucieczki i domkniete pole', () => {
   assert.equal(salvageMessage('Zwykly tekst bez JSON-a'), null, 'czysty tekst obsluguje sciezka tekstowa');
   assert.equal(salvageMessage('{"cta": []}'), null, 'brak pola message to brak tresci do uratowania');
 });
+
+test('podpowiedzi z modelu sa przycinane do trzech i oczyszczane', () => {
+  const parsed = parseModelResponse(JSON.stringify({
+    message: '[SMILE] Zajecia w grupie kosztuja 35 zl.',
+    podpowiedzi: [
+      '  Ile trwa   jedna lekcja?  ',       // nadmiarowe spacje do zwiniecia
+      'ILE TRWA JEDNA LEKCJA?',             // duplikat bez wzgledu na wielkosc liter
+      'A ile kosztuja zajecia indywidualne?',
+      'x',                                  // za krotkie
+      'Czy '.repeat(30),                    // ponad 70 znakow
+      'Kiedy startuja nowe grupy?',
+      'Czwarta podpowiedz ponad limit',
+    ],
+  }));
+  assert.deepEqual(parsed.podpowiedzi, [
+    'Ile trwa jedna lekcja?',
+    'A ile kosztuja zajecia indywidualne?',
+    'Kiedy startuja nowe grupy?',
+  ]);
+});
+
+test('brak podpowiedzi albo zly typ daje pusta tablice, nie wyjatek', () => {
+  for (const wariant of [undefined, null, 'tekst', 42, {}, [1, true, null]]) {
+    const parsed = parseModelResponse(JSON.stringify({ message: '[NEUTRAL] Tekst', podpowiedzi: wariant }));
+    assert.deepEqual(parsed.podpowiedzi, [], 'wariant: ' + JSON.stringify(wariant));
+  }
+});
+
+test('urwany JSON nie zgaduje podpowiedzi', () => {
+  const parsed = parseModelResponse('{"message":"[SMILE] Grupa kosztuje 35 z');
+  assert.equal(parsed.format, 'json-urwany');
+  assert.deepEqual(parsed.podpowiedzi, []);
+});
+
+test('System Prompt zamawia podpowiedzi jako pytania uzytkownika', () => {
+  const prompt = buildSystemPrompt({ knowledge: 'BRAK' });
+  assert.match(prompt, /"podpowiedzi"/);
+  assert.match(prompt, /pytania UZYTKOWNIKA/i);
+});
