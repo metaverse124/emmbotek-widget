@@ -86,7 +86,9 @@ const pickProfile = (value) => {
  * wstawia je przez `textContent`, ale limit dlugosci jest tutaj, bo za dlugi
  * napis rozwala uklad chipsow, a nie da sie na to poradzic po stronie CSS bez
  * ucinania w polowie slowa. Trzy sztuki to gorna granica - wiecej zamienia
- * podpowiedzi w sciane tekstu i przykrywa sama odpowiedz.
+ * podpowiedzi w sciane tekstu i przykrywa sama odpowiedz. Limit 56 znakow
+ * odpowiada mniej wiecej szerokosci panelu: dluzsza etykieta i tak zostalaby
+ * przycieta wielokropkiem, wiec lepiej ja odrzucic i wziac nastepna.
  */
 const pickPodpowiedzi = (value) => {
   if (!Array.isArray(value)) return [];
@@ -94,7 +96,7 @@ const pickPodpowiedzi = (value) => {
   for (const item of value) {
     if (typeof item !== 'string') continue;
     const tekst = item.replace(/\s+/g, ' ').trim();
-    if (tekst.length < 3 || tekst.length > 70) continue;
+    if (tekst.length < 3 || tekst.length > 56) continue;
     if (out.some((juz) => juz.toLowerCase() === tekst.toLowerCase())) continue;
     out.push(tekst);
     if (out.length === 3) break;

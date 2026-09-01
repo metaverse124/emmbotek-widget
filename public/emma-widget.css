@@ -23,6 +23,13 @@
   --emma-on-dark: #F4F8F9;
   --emma-radius: 20px;
   --emma-shadow: 0 18px 48px rgba(6, 32, 40, .24);
+  /*
+     Powiekszenie panelu na komputerze. Skalujemy caly panel zamiast podnosic
+     kilkadziesiat wartosci w pikselach - dzieki temu proporcje, ktore zostaly
+     zmierzone i dopasowane (naglowek, miny oceny, chipsy), zostaja nienaruszone.
+     Na telefonie panel i tak zajmuje caly ekran, wiec tam skala nie obowiazuje.
+  */
+  --emma-skala: 1.28;
 
   position: fixed;
   right: 20px;
@@ -186,6 +193,32 @@
   to   { opacity: 1; transform: none; }
 }
 
+/*
+   Wersja komputerowa: panel powiekszony o 28%. Rosnie w lewo i w gore od swojego
+   prawego dolnego naroznika, wiec nie wychodzi poza krawedz ekranu ani nie
+   przykrywa zakladki.
+
+   `max-height` musi byc podzielone przez skale, bo przegladarka liczy je PRZED
+   powiekszeniem - bez tego dzielenia panel na nizszym ekranie (np. 768 px)
+   wystawalby ponad gorna krawedz.
+
+   Animacja wejscia ma wlasny wariant, bo tamta konczyla sie na `transform: none`
+   i skasowalaby powiekszenie w ostatniej klatce.
+*/
+@media (min-width: 641px) {
+  .emma__panel {
+    transform-origin: bottom right;
+    transform: scale(var(--emma-skala));
+    max-height: calc((100vh - 120px) / var(--emma-skala));
+    animation-name: emma-panel-in-duzy;
+  }
+}
+
+@keyframes emma-panel-in-duzy {
+  from { opacity: 0; transform: scale(var(--emma-skala)) translateY(12px); }
+  to   { opacity: 1; transform: scale(var(--emma-skala)); }
+}
+
 /* ------------------------------------------------------------------ naglowek */
 
 .emma__header {
@@ -199,10 +232,17 @@
   color: var(--emma-on-dark);
 }
 
-/* Ten sam powod co przy zakladce: w naglowku maskotka ma byc widoczna, nie ikonkowa. */
+/*
+   Ten sam powod co przy zakladce: w naglowku maskotka ma byc widoczna, nie ikonkowa.
+
+   80 px to wartosc PO wprowadzeniu skali panelu (--emma-skala). Na ekranie daje
+   to ok. 102 px, czyli dokladnie tyle, ile maskotka miala wczesniej przy panelu
+   bez skalowania. Zostawienie 104 px robiloby z niej 133 px i naglowek zjadalby
+   prawie 30% okna - zmierzone: rozmowie zostawalo wtedy 25,9% wysokosci panelu.
+*/
 .emma__avatar {
-  width: 104px;
-  height: 104px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: rgba(255, 255, 255, .1);
   flex: 0 0 auto;
@@ -615,16 +655,43 @@
 
 /* ----------------------------------------------------------------- chipsy */
 
-.emma__chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 14px 8px; }
+/*
+   Pas chipsow ma byc dodatkiem, nie druga trescia okna. Przy trzech dluzszych
+   podpowiedziach zawijal sie na trzy wiersze i zabieral polowe wysokosci panelu,
+   spychajac sama rozmowe. Stad trzy ograniczenia naraz:
+   - drobniejsze chipsy (11.5 px zamiast 13, ciasniejsze wypelnienie),
+   - `max-height` na dwa wiersze z wlasnym przewijaniem, gdy podpowiedzi sa dlugie,
+   - przyciecie zbyt dlugiej etykiety wielokropkiem zamiast lamania jej w srodku.
+*/
+.emma__chips {
+  display: flex;
+  /* `flex: 0 0 auto` jest konieczne: panel to kolumna flex o stalej wysokosci,
+     wiec bez tego pasek chipsow byl sciskany do 40 px i drugi chips chowal sie
+     pod krawedzia. Kurczyc ma sie rozmowa (`.emma__log`), nie pasek podpowiedzi. */
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px 14px 8px;
+  /* Bezpiecznik: chipsy nie zawijaja sie w srodku (nowrap + wielokropek),
+     a kontekstowe sa najwyzej dwa, wiec dwa wiersze to gorna granica. */
+  max-height: 80px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
 
 .emma__chip {
-  padding: 7px 12px;
+  max-width: 100%;
+  padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid #CFDBE0;
   background: var(--emma-surface);
   color: var(--emma-text-soft);
   font: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   transition: border-color .16s ease, color .16s ease, background-color .16s ease;
 }
@@ -907,8 +974,10 @@
 */
 .emma__zgoda {
   display: flex;
+  flex-wrap: wrap;                 /* odnosnik do zasad schodzi do wlasnego wiersza */
   align-items: flex-start;
   gap: 9px;
+  row-gap: 0;
   margin: 0 14px 2px;
   padding: 10px 12px;
   border: 1px solid #D8E4DA;
@@ -934,7 +1003,8 @@
   transition: opacity .32s ease, transform .32s ease, max-height .32s ease .06s,
               padding .32s ease .06s, margin .32s ease .06s, border-width .32s ease .06s;
 }
-.emma__zgoda { max-height: 120px; transition: max-height .32s ease; }
+/* Zapas na drugi wiersz z odnosnikiem do zasad oraz na dluzsze tlumaczenia. */
+.emma__zgoda { max-height: 180px; transition: max-height .32s ease; }
 .emma__zgoda[hidden] { display: none; }
 
 /* Krotkie podswietlenie, gdy ktos probuje wyslac wiadomosc bez zgody -
@@ -952,8 +1022,35 @@
    wiec (zostaje dla klawiatury i czytnikow ekranu), a widoczny kwadracik rysujemy
    sami przez ::before etykiety.
 */
-.emma__zgoda,
-.emma__zgoda * { cursor: url("kursor-lapka.svg") 12 8, pointer !important; }
+/*
+   Bramka zgody celowo NIE ma lapki - tu obowiazuje zwykly kursor systemowy.
+   To jedyne miejsce w widgecie, gdzie uzytkownik podejmuje formalna decyzje,
+   i ozdobny kursor tylko rozprasza. `!important` jest potrzebne, bo strona
+   narzuca wlasny kursor regula `label[for], a[href], input[type=checkbox]`
+   o wyzszej specyficznosci niz same klasy.
+
+   Selektor jest celowo poprzedzony `.emma`: bez tego ma taka sama specyficznosc
+   co ogolna regula lapki dla `.emma__link`, a ta stoi nizej w pliku i wygrywala
+   remis - odnosnik do zasad dostawal lapke mimo tej reguly.
+*/
+.emma .emma__zgoda,
+.emma .emma__zgoda * { cursor: pointer !important; }
+
+/*
+   Odnosnik do zasad w osobnym wierszu, POZA etykieta pola wyboru.
+   Dopoki siedzial w srodku zdania, zabieral 171 z 361 px klikalnego paska
+   i klikniecie w niego niczego nie zaznaczalo - przegladarka nie aktywuje
+   etykiety przez zagniezdzona tresc interaktywna. Teraz sa to dwa osobne,
+   jednoznaczne cele.
+*/
+.emma__zgoda-zasady {
+  flex: 1 0 100%;
+  margin-left: 26px;               /* rowno pod tekstem, nie pod kwadracikiem */
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}
 
 .emma__zgoda-pole {
   position: absolute;

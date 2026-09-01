@@ -116,7 +116,10 @@ PODPOWIEDZI (pole "podpowiedzi"):
 - To sa pytania UZYTKOWNIKA do Ciebie, nie Twoje pytania do niego. Pisz je w pierwszej
   osobie tak, jakby wpisal je rozmowca ("Ile trwa jedna lekcja?"), nigdy jako
   "Czy chcesz...".
-- Dokladnie 2-3 sztuki, kazda do 70 znakow, bez numeracji i bez myslnikow.
+- Dokladnie 2-3 sztuki, kazda do 45 znakow, bez numeracji i bez myslnikow.
+- Maja byc krotkie jak etykieta przycisku, nie jak zdanie z listu. Zamiast
+  "A ile kosztuja zajecia indywidualne z native speakerem?" napisz
+  "Ile kosztuja zajecia indywidualne?".
 - Maja wynikac z TEGO, co wlasnie powiedziales - pchac watek dalej, a nie zaczynac
   rozmowe od nowa. Jesli podales cene grupy, dobra podpowiedz pyta o zajecia
   indywidualne albo o terminy, a nie "Jaka jest oferta?".

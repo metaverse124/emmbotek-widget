@@ -130,6 +130,7 @@
       "zgodaPrzed": "Zapoznałem się z ",
       "zgodaLink": "zasadami korzystania z asystenta",
       "zgodaPo": " i akceptuję je.",
+      "zgodaZasady": "Przeczytaj zasady korzystania",
       "jezyk": "Język rozmowy",
       "nazwaPola": "Treść wiadomości do Emmbotka",
       "wyslij": "Wyślij wiadomość",
@@ -170,6 +171,7 @@
       "zgodaPrzed": "I have read the ",
       "zgodaLink": "terms of use of the assistant",
       "zgodaPo": " and I accept them.",
+      "zgodaZasady": "Read the terms of use",
       "jezyk": "Conversation language",
       "nazwaPola": "Message to Emmbotek",
       "wyslij": "Send message",
@@ -210,6 +212,7 @@
       "zgodaPrzed": "He leído las ",
       "zgodaLink": "condiciones de uso del asistente",
       "zgodaPo": " y las acepto.",
+      "zgodaZasady": "Leer las condiciones de uso",
       "jezyk": "Idioma de la conversación",
       "nazwaPola": "Mensaje para Emmbotek",
       "wyslij": "Enviar mensaje",
@@ -250,6 +253,7 @@
       "zgodaPrzed": "Ich habe die ",
       "zgodaLink": "Nutzungsbedingungen des Assistenten",
       "zgodaPo": " gelesen und akzeptiere sie.",
+      "zgodaZasady": "Nutzungsbedingungen lesen",
       "jezyk": "Gesprächssprache",
       "nazwaPola": "Nachricht an Emmbotek",
       "wyslij": "Nachricht senden",
@@ -290,6 +294,7 @@
       "zgodaPrzed": "J’ai lu les ",
       "zgodaLink": "conditions d’utilisation de l’assistant",
       "zgodaPo": " et je les accepte.",
+      "zgodaZasady": "Lire les conditions d’utilisation",
       "jezyk": "Langue de la conversation",
       "nazwaPola": "Message pour Emmbotek",
       "wyslij": "Envoyer le message",
@@ -330,6 +335,7 @@
       "zgodaPrzed": "Ho letto le ",
       "zgodaLink": "condizioni d’uso dell’assistente",
       "zgodaPo": " e le accetto.",
+      "zgodaZasady": "Leggi le condizioni d’uso",
       "jezyk": "Lingua della conversazione",
       "nazwaPola": "Messaggio per Emmbotek",
       "wyslij": "Invia il messaggio",
@@ -370,6 +376,7 @@
       "zgodaPrzed": "Я ознакомился с ",
       "zgodaLink": "правилами использования ассистента",
       "zgodaPo": " и принимаю их.",
+      "zgodaZasady": "Читать правила использования",
       "jezyk": "Язык разговора",
       "nazwaPola": "Сообщение для Emmbotek",
       "wyslij": "Отправить сообщение",
@@ -410,6 +417,7 @@
       "zgodaPrzed": "Я ознайомився з ",
       "zgodaLink": "правилами користування асистентом",
       "zgodaPo": " і приймаю їх.",
+      "zgodaZasady": "Читати правила користування",
       "jezyk": "Мова розмови",
       "nazwaPola": "Повідомлення для Emmbotek",
       "wyslij": "Надіслати повідомлення",
@@ -450,6 +458,7 @@
       "zgodaPrzed": "",
       "zgodaLink": "어시스턴트 이용 약관",
       "zgodaPo": "을 읽고 동의합니다.",
+      "zgodaZasady": "이용 약관 읽기",
       "jezyk": "대화 언어",
       "nazwaPola": "Emmbotek에게 보낼 메시지",
       "wyslij": "메시지 보내기",
@@ -811,22 +820,36 @@
     zgodaPole.className = 'emma__zgoda-pole';
     zgodaPole.id = zgodaId;
 
+    /*
+      Odnosnik do zasad lezy POZA etykieta, i to nie jest kosmetyka.
+
+      Wczesniej byl w nia wpisany i zabieral 171 z 361 px klikalnego paska.
+      Przegladarka celowo nie aktywuje etykiety, gdy klikniecie trafia w tresc
+      interaktywna w srodku (tak mowi specyfikacja), wiec klikniecie w te polowe
+      zdania nie zaznaczalo niczego - tylko otwieralo nowa karte. Z perspektywy
+      uzytkownika pole wyboru po prostu sie zacinalo.
+
+      Teraz etykieta niesie cale zdanie zwyklym tekstem i kazde jej klikniecie
+      zaznacza zgode, a zasady otwiera osobny, wyrazny odnosnik pod spodem.
+    */
     var zgodaEtykieta = doc.createElement('label');
     zgodaEtykieta.className = 'emma__zgoda-tekst';
     zgodaEtykieta.setAttribute('for', zgodaId);
     var zgodaPrzed = el('span', null, t('zgodaPrzed'));
+    var zgodaSrodek = el('span', null, t('zgodaLink'));
+    var zgodaPo = el('span', null, t('zgodaPo'));
     zgodaEtykieta.appendChild(zgodaPrzed);
+    zgodaEtykieta.appendChild(zgodaSrodek);
+    zgodaEtykieta.appendChild(zgodaPo);
 
-    var zasady = el('a', 'emma__link', t('zgodaLink'));
+    var zasady = el('a', 'emma__link emma__zgoda-zasady', t('zgodaZasady'));
     zasady.href = state.options.rulesUrl || state.options.privacyUrl || '#';
     zasady.target = '_blank';
     zasady.rel = 'noopener';
-    zgodaEtykieta.appendChild(zasady);
-    var zgodaPo = el('span', null, t('zgodaPo'));
-    zgodaEtykieta.appendChild(zgodaPo);
 
     zgoda.appendChild(zgodaPole);
     zgoda.appendChild(zgodaEtykieta);
+    zgoda.appendChild(zasady);
 
     /*
       Pasek wyboru jezyka rozmowy. Szkola uczy dziewieciu jezykow, wiec rozmowa
@@ -917,7 +940,7 @@
       ocena: ocena, ocenaMiny: ocenaMiny, ocenaTytul: ocenaTytul,
       tabLabel: tabLabel, status: status, jezykEtykieta: jezykEtykieta,
       koszEtykieta: koszEtykieta, rodoTekst: rodoTekst, privacy: privacy,
-      zgodaPrzed: zgodaPrzed, zgodaLink: zasady, zgodaPo: zgodaPo,
+      zgodaPrzed: zgodaPrzed, zgodaSrodek: zgodaSrodek, zgodaPo: zgodaPo, zgodaZasady: zasady,
     };
   }
 
@@ -1154,7 +1177,12 @@
     state.nodes.chips.innerHTML = '';
     state.nodes.chips.setAttribute('data-kontekstowe', kontekstowe ? 'true' : 'false');
     if (!list || !list.length) return;
-    list.forEach(function (label) {
+    // Podpowiedzi kontekstowe pokazujemy najwyzej dwie. Model potrafi oddac trzy,
+    // ale kazda zajmuje wlasny wiersz - trzecia ladowala pod krawedzia paska
+    // i trzeba bylo do niej przewijac. Podpowiedz, ktorej nie widac, nie pomaga,
+    // a pasek ma byc dodatkiem do rozmowy, nie druga trescia okna.
+    var doPokazania = kontekstowe ? list.slice(0, 2) : list;
+    doPokazania.forEach(function (label) {
       var chip = el('button', 'emma__chip', label);
       chip.type = 'button';
       if (kontekstowe) chip.className = 'emma__chip emma__chip--dalej';
@@ -1447,8 +1475,9 @@
     n.rodoTekst.textContent = t('rodo');
     if (n.privacy) n.privacy.textContent = t('polityka');
     n.zgodaPrzed.textContent = t('zgodaPrzed');
-    n.zgodaLink.textContent = t('zgodaLink');
+    n.zgodaSrodek.textContent = t('zgodaLink');
     n.zgodaPo.textContent = t('zgodaPo');
+    n.zgodaZasady.textContent = t('zgodaZasady');
     odswiezZgode();
   }
 
