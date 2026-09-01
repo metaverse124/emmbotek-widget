@@ -306,12 +306,19 @@
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, .14);
   font-family: "Lustria", "EmmbotekLogo", "Lora", Georgia, "Times New Roman", serif;
-  font-size: 13.5px;
-  line-height: 1.35;
+  font-size: 12.5px;
+  line-height: 1.3;
   color: #CBDEE4;
-  white-space: nowrap;
+  /* Dwie linijki zamiast jednej z wielokropkiem: podtytul dostaje dopisywana
+     dygresje, ktora go wydluza. Przy `nowrap` stukanie na maszynie konczyloby
+     sie od razu na wielokropku i nie bylo by go widac. Zacisk na dwoch
+     wierszach trzyma wysokosc naglowka w ryzach niezaleznie od tlumaczenia. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  min-height: 2.6em;               /* miejsce na drugi wiersz z gory, zeby naglowek nie podskakiwal */
 }
 
 /*
@@ -685,13 +692,13 @@
 
 .emma__chip {
   max-width: 100%;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
   border: 1px solid #CFDBE0;
   background: var(--emma-surface);
   color: var(--emma-text-soft);
   font: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -1474,4 +1481,50 @@ html.emma-locked, html.emma-locked body { overflow: hidden; }
   padding: 8px 16px 9px;
   font-size: 10.5px;
   line-height: 1.45;
+}
+
+/* --------------------------------------- przelacznik podpowiedzi i nota AI */
+/*
+   Drobny przycisk na koncu paska podpowiedzi. Przy widocznych podpowiedziach
+   jest samym krzyzykiem; po wylaczeniu zostaje jedynym elementem paska i nosi
+   slowo "Podpowiedzi", zeby bylo wiadomo, co przywraca. Calkowite zniknięcie
+   paska oznaczaloby, ze nie ma jak wrocic do ustawienia.
+*/
+.emma__chip-przelacznik {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px dashed #CFDBE0;
+  background: transparent;
+  color: #93A5AD;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color .16s ease, border-color .16s ease, background-color .16s ease;
+}
+.emma__chip-przelacznik:hover {
+  color: var(--emma-base);
+  border-color: var(--emma-base);
+  background: var(--emma-surface-alt);
+}
+.emma__chip-przelacznik:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
+/* Po wylaczeniu przycisk jest jedyna trescia paska - wtedy moze byc odrobine
+   bardziej widoczny, bo pelni role wlacznika, a nie tylko odnosnika obok. */
+.emma__chip-przelacznik[data-wylaczone="true"] {
+  border-style: solid;
+  color: var(--emma-text-soft);
+}
+
+/*
+   Obowiazkowa informacja o generowaniu odpowiedzi przez model jezykowy
+   (AI Act, art. 50). Najdrobniejszy druk w calym widgecie - to przypis,
+   nie tresc - ale bez chowania i bez wygaszania do nieczytelnosci:
+   kontrast wzgledem tla stopki pozostaje powyzej 4,5:1.
+*/
+.emma__note-ai {
+  font-size: 9.5px;
+  line-height: 1.35;
+  color: #6B7B83;
+  letter-spacing: .01em;
 }
