@@ -1,0 +1,30 @@
+# Co NIE ma jechac na Vercela.
+#
+# Bez tego pliku wdrozenie zabiera caly katalog roboczy - w tym materialy klienta
+# i arkusze zrodlowe maskotki, ktore na serwerze nie sluza do niczego, a lezalyby
+# na cudzej infrastrukturze bez powodu.
+
+# Materialy od klienta: brief, dokument przekazania, wizerunki maskotki
+brief/
+
+# Arkusze zrodlowe maskotki (4,6 MB) - awatary sa juz wyciete w public/avatars/
+assets/
+
+# Paczka widgetu dla strony - jej miejsce jest na LH.pl, nie tutaj
+dist-widget/
+
+# Sekrety i pliki lokalne
+.env
+.env.*
+sekrety-do-vercela.txt
+wdroz-na-vercela.cmd
+
+# Testy i narzedzia deweloperskie - backend ich nie uruchamia
+tests/
+scripts/
+docs/
+
+# Robocze
+.git/
+node_modules/
+*.log
