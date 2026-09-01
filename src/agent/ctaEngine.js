@@ -22,16 +22,28 @@ export const CTA_TYPES = [
 const CATALOG = {
   VIEW_FULL_OFFER:    { label: 'Zobacz pełną ofertę',            icon: '📚', target: 'OFFER',           action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
   VIEW_COURSE:        { label: 'Zobacz szczegóły kursu',         icon: '📘', target: 'OFFER',           action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_FOR_CHILDREN:  { label: 'Poznaj ofertę dla dzieci',       icon: '📚', target: 'COURSE_CHILDREN', action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
-  VIEW_FOR_ADULTS:    { label: 'Poznaj ofertę dla dorosłych',    icon: '📚', target: 'COURSE_ADULTS',   action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
+  /*
+     `fallbackTarget` nie jest ozdoba - wynika z tego, co strona naprawde ma.
+     Po odcieciu wpisow blogowych od celow ofertowych mapa zbudowana z zywego
+     kanalu ma dziewiec celow zamiast trzynastu: emmastudio.pl nie ma osobnych
+     podstron dla oferty dla dzieci, dla doroslych, kursow egzaminacyjnych ani
+     metody - jedyne dopasowania byly artykulami na blogu.
+
+     Bez celu zastepczego te przyciski w ogole by nie powstawaly. Z nim prowadza
+     na /oferta, czyli tam, gdzie te informacje faktycznie sa. Gdy szkola dorobi
+     dedykowane podstrony, mapa podchwyci je przy najblizszej synchronizacji
+     i zapas przestanie byc uzywany.
+  */
+  VIEW_FOR_CHILDREN:  { label: 'Poznaj ofertę dla dzieci',       icon: '📚', target: 'COURSE_CHILDREN', action: 'url',   stage: ['eksploracja', 'dopasowanie'], fallbackTarget: 'OFFER' },
+  VIEW_FOR_ADULTS:    { label: 'Poznaj ofertę dla dorosłych',    icon: '📚', target: 'COURSE_ADULTS',   action: 'url',   stage: ['eksploracja', 'dopasowanie'], fallbackTarget: 'OFFER' },
   VIEW_FOR_COMPANIES: { label: 'Zobacz ofertę dla firm',         icon: '🏢', target: 'COMPANY',         action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
   VIEW_PRICE:         { label: 'Zobacz aktualny cennik',         icon: '💰', target: 'PRICE',           action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_SCHEDULE:      { label: 'Sprawdź harmonogram',            icon: '🗓️', target: 'SCHEDULE',        action: 'url',   stage: ['dopasowanie', 'decyzja'] },
-  VIEW_EXAM:          { label: 'Zobacz kursy egzaminacyjne',     icon: '🎓', target: 'EXAM',            action: 'url',   stage: ['dopasowanie', 'decyzja'] },
+  VIEW_SCHEDULE:      { label: 'Sprawdź harmonogram',            icon: '🗓️', target: 'SCHEDULE',        action: 'url',   stage: ['dopasowanie', 'decyzja'], fallbackTarget: 'OFFER' },
+  VIEW_EXAM:          { label: 'Zobacz kursy egzaminacyjne',     icon: '🎓', target: 'EXAM',            action: 'url',   stage: ['dopasowanie', 'decyzja'], fallbackTarget: 'OFFER' },
   VIEW_NEWS:          { label: 'Zobacz nową grupę',              icon: '🆕', target: 'NEWS',            action: 'url',   stage: ['eksploracja', 'dopasowanie', 'decyzja'] },
   VIEW_BLOG:          { label: 'Przeczytaj cały artykuł',        icon: '📖', target: 'BLOG',            action: 'url',   stage: ['eksploracja', 'dopasowanie'] },
   TRIAL_LESSON:       { label: 'Umów bezpłatną lekcję próbną',   icon: '✨', target: 'TRIAL_LESSON',    action: 'url',   stage: ['decyzja', 'kontakt'], fallbackTarget: 'CONTACT', fallbackAnchor: 'lekcja-probna' },
-  LEVEL_TEST:         { label: 'Zrób test poziomujący',          icon: '🧭', target: 'LEVEL_TEST',      action: 'url',   stage: ['dopasowanie', 'decyzja'] },
+  LEVEL_TEST:         { label: 'Zrób test poziomujący',          icon: '🧭', target: 'LEVEL_TEST',      action: 'url',   stage: ['dopasowanie', 'decyzja'], fallbackTarget: 'CONTACT' },
   CONTACT:            { label: 'Skontaktuj się z sekretariatem', icon: '💬', target: 'CONTACT',         action: 'url',   stage: ['decyzja', 'kontakt'] },
   FORM:               { label: 'Wyślij formularz',               icon: '📝', target: 'CONTACT',         action: 'url',   stage: ['kontakt'] },
   CALL:               { label: 'Zadzwoń do sekretariatu',        icon: '📞', target: 'CONTACT',         action: 'call',  stage: ['kontakt'] },

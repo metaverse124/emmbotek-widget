@@ -68,8 +68,27 @@ export const config = {
      * gemini-3.6-flash dziala, gemini-flash-latest wraca z 503 (przeciazenie),
      * a gemini-flash-lite-latest odpowiada w ~1,5 s - stad taki zapasowy.
      */
-    model: env('GEMINI_MODEL', 'gemini-3.6-flash'),
-    fallbackModel: env('GEMINI_FALLBACK_MODEL', 'gemini-flash-lite-latest'),
+    /*
+       Kolejnosc modeli odwrocona 2026-09-01 na podstawie pomiaru na zywym kluczu.
+       Cztery kolejne wywolania kazdego, ten sam prompt i ta sama konfiguracja:
+
+         gemini-3.6-flash          8202 ms | 52460 ms | HTTP 429 | HTTP 429
+         gemini-flash-lite-latest   964 ms |  1332 ms |   985 ms |  760 ms
+
+       Model "mocniejszy" na darmowym planie albo przekracza prog przelaczenia,
+       albo odbija sie od limitu. W efekcie KAZDA rozmowa najpierw marnowala
+       wywolanie i do dziewieciu sekund czekania, a odpowiadal i tak model lekki -
+       widac to bylo w polu meta.model kazdej odpowiedzi z produkcji.
+
+       Jakosc sprawdzona na tych samych pytaniach: lekki model podaje te same ceny,
+       te same CTA i poprawne polskie znaki. Zamiana daje odpowiedzi w 1,6-1,9 s
+       zamiast 5-7 s i o polowe mniejsze zuzycie limitu.
+
+       Ciezszy model zostaje jako zapasowy - gdyby lekki kiedys zawiodl, lepiej
+       poczekac dluzej niz nie odpowiedziec wcale.
+    */
+    model: env('GEMINI_MODEL', 'gemini-flash-lite-latest'),
+    fallbackModel: env('GEMINI_FALLBACK_MODEL', 'gemini-3.6-flash'),
     endpoint: env('GEMINI_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models'),
     temperature: 0.6,
     /**
@@ -80,13 +99,14 @@ export const config = {
     maxOutputTokens: num('GEMINI_MAX_OUTPUT_TOKENS', 2048),
     /** Poziom myslenia modeli 3.x: '' wylacza pole, 'low' skraca czas odpowiedzi o polowe. */
     thinkingLevel: env('GEMINI_THINKING_LEVEL', 'low'),
+    // Strumieniowanie odpowiedzi. Wylaczone na podstawie pomiaru - powody
+    // i liczby w src/server/sse.js przy `chceStrumienia`.
+    streaming: bool('GEMINI_STREAMING', false),
     /**
      * Prog przelaczenia na model zapasowy, a nie realny limit cierpliwosci.
-     * Zmierzone 2026-08-31: gemini-3.6-flash odpowiada zwykle w 5-7 s, ale potrafi
-     * skoczyc do 25 s; gemini-flash-lite-latest trzyma sie 1-2 s przy odpowiedziach
-     * tej samej jakosci (te same ceny, te same CTA). Przy progu 20 s jedna odpowiedz
-     * w tescie zajela 23 s - w widgecie czatu to wieczność. Przy 9 s najgorszy
-     * przypadek to okolo 11 s, a typowa odpowiedz nadal idzie z mocniejszego modelu.
+     * Po zamianie kolejnosci modeli glowny (lekki) odpowiada w okolo sekunde,
+     * wiec dziewiec sekund to bardzo duzy zapas - siega po zapasowy dopiero
+     * wtedy, gdy naprawde cos jest nie tak.
      */
     timeoutMs: num('GEMINI_TIMEOUT_MS', 9000),
   },

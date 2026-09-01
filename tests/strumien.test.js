@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { createChatHandler } from '../src/server/handlers/chat.js';
 import { chceStrumienia } from '../src/server/sse.js';
+import config from '../src/config.js';
 import { emptyBase, mergeDocuments, makeDocument } from '../src/knowledge/store.js';
 import { makeReq, makeRes } from './helpers/http.js';
 
@@ -63,13 +64,32 @@ const ODPOWIEDZ = JSON.stringify({
   intent: 'PRICE',
 });
 
-test('naglowek Accept decyduje o trybie strumieniowym', () => {
-  assert.equal(chceStrumienia({ headers: { accept: 'text/event-stream, application/json' } }), true);
-  assert.equal(chceStrumienia({ headers: { accept: 'application/json' } }), false);
-  assert.equal(chceStrumienia({ headers: {} }), false);
+/*
+   Strumien jest domyslnie wylaczony - powod i pomiary przy `chceStrumienia`
+   w src/server/sse.js. Testy wlaczaja go jawnie, zeby sprawdzic mechanizm,
+   ktory ma byc gotowy do wlaczenia, gdy model zacznie oddawac tekst wczesniej.
+*/
+const zeStrumieniem = async (fn) => {
+  const bylo = config.gemini.streaming;
+  config.gemini.streaming = true;
+  try { await fn(); } finally { config.gemini.streaming = bylo; }
+};
+
+test('domyslnie strumien jest wylaczony, mimo naglowka Accept', () => {
+  assert.equal(config.gemini.streaming, false, 'domyslna konfiguracja ma nie strumieniowac');
+  assert.equal(chceStrumienia({ headers: { accept: 'text/event-stream' } }), false);
+});
+
+test('po wlaczeniu naglowek Accept decyduje o trybie strumieniowym', async () => {
+  await zeStrumieniem(() => {
+    assert.equal(chceStrumienia({ headers: { accept: 'text/event-stream, application/json' } }), true);
+    assert.equal(chceStrumienia({ headers: { accept: 'application/json' } }), false);
+    assert.equal(chceStrumienia({ headers: {} }), false);
+  });
 });
 
 test('przy Accept: text/event-stream odpowiedz leci zdarzeniami', async () => {
+  await zeStrumieniem(async () => {
   // Model "pisze" po kawalku - handler ma po kazdym kawalku wyslac narastajaca tresc.
   const generateFn = async ({ onFragment }) => {
     assert.ok(onFragment, 'handler musi poprosic o strumien');
@@ -109,6 +129,7 @@ test('przy Accept: text/event-stream odpowiedz leci zdarzeniami', async () => {
   assert.equal(koniec.message, 'Kurs w grupie kosztuje 35 zł za 60 minut.');
   assert.deepEqual(koniec.podpowiedzi, ['Ile trwa lekcja?']);
   assert.equal(koniec.emotion, 'SMILE');
+  });
 });
 
 test('bez naglowka Accept odpowiedz jest zwyklym JSON-em', async () => {
@@ -133,6 +154,7 @@ test('bez naglowka Accept odpowiedz jest zwyklym JSON-em', async () => {
 });
 
 test('odmowa przed wolaniem modelu nie otwiera strumienia', async () => {
+  await zeStrumieniem(async () => {
   const handler = createChatHandler({
     limiter: { consume: async () => ({ allowed: false, retryAfterMs: 1000 }) },
     loadKnowledge: async () => testowaBaza(),
@@ -146,4 +168,5 @@ test('odmowa przed wolaniem modelu nie otwiera strumienia', async () => {
   // po wyslaniu naglowkow SSE nie da sie juz oddac kodu bledu.
   assert.equal(res.statusCode, 429);
   assert.doesNotMatch(String(res.headers['content-type'] ?? ''), /event-stream/);
+  });
 });
