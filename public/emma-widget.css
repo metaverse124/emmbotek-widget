@@ -21,7 +21,16 @@
   right: 20px;
   bottom: 20px;
   z-index: 2147483000;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /*
+     Stos krojow musi obsluzyc wszystkie dziewiec jezykow rozmowy. Segoe UI i Roboto
+     pokrywaja lacinke z polskimi znakami oraz cyrylice (rosyjski, ukrainski), ale NIE
+     maja hangulu - bez dalszych pozycji koreanski trafia na losowy kroj systemowy
+     i miesza sie z reszta interfejsu w jednym zdaniu.
+     Dokladamy wiec rodziny koreanskie kolejno dla Windows, macOS i Androida.
+  */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans",
+    Arial, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   color: var(--emma-text);
@@ -180,9 +189,30 @@
   overflow: hidden;
 }
 
+/*
+   Tekst naglowka przycina sie wielokropkiem zamiast zawijac.
+
+   Bez tego rozsuniety kosz ("Na pewno?") zabieral szerokosc, a status zawijal sie
+   na piec linijek i caly naglowek puchl. Przyciecie trzyma stala wysokosc niezaleznie
+   od tego, co dzieje sie obok - i przy okazji ratuje waskie panele.
+*/
 .emma__headtext { flex: 1 1 auto; min-width: 0; }
-.emma__title { margin: 0; font-size: 15px; font-weight: 700; }
-.emma__status { margin: 2px 0 0; font-size: 12px; color: #BFD6DD; }
+.emma__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.emma__status {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #BFD6DD;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /*
    Ikony w naglowku wygladaly jak sam rysunek zawieszony w powietrzu - 34 px bez tla
@@ -190,31 +220,192 @@
    pelnoprawne przyciski: 38 px pola dotyku (minimum dla palca), widoczna obwodka
    i tlo, ktore reaguje na najechanie i wcisniecie.
 */
+/*
+   Przyciski naglowka: szklane krazki na ciemnym tle.
+
+   Zamiast plaskiego kolka z obwodka - warstwa rozmytego tla (backdrop-filter),
+   delikatny rant od srodka i cien pod spodem. Na ciemnym naglowku szklo czyta sie
+   jako element uniesiony nad tlem, a nie naklejony na nie.
+
+   `flex: 0 0 38px` jest konieczne, nie ozdobne: przyciski sa elementami nagłowka
+   ustawionego na flex, a po powiekszeniu maskotki zabraklo w nim miejsca. Domyslne
+   kurczenie sciskalo je do 26x38 px i `border-radius: 50%` robil elipse zamiast kola.
+*/
 .emma__icon-btn {
+  position: relative;
   display: grid;
   place-items: center;
+  flex: 0 0 38px;
   width: 38px;
   height: 38px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, .22);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   color: var(--emma-on-dark);
   cursor: pointer;
-  transition: background-color .16s ease, border-color .16s ease, transform .12s ease;
+  overflow: hidden;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, .3),
+    inset 0 1px 0 rgba(255, 255, 255, .34);
+  transition: background-color .18s ease, border-color .18s ease, transform .14s ease,
+              box-shadow .18s ease, flex-basis .22s ease, width .22s ease;
 }
 .emma__icon-btn:hover {
-  background: rgba(255, 255, 255, .2);
-  border-color: rgba(255, 255, 255, .42);
+  background: rgba(255, 255, 255, .22);
+  border-color: rgba(255, 255, 255, .45);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .45);
 }
-.emma__icon-btn:active { transform: scale(.94); }
-.emma__icon-btn:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
-.emma__icon-btn svg { width: 20px; height: 20px; display: block; }
-/* Kosz kasuje rozmowe bezpowrotnie - pod kursorem robi sie ostrzegawczo rozowy. */
+.emma__icon-btn:active {
+  transform: translateY(1px) scale(.96);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3), inset 0 2px 5px rgba(0, 0, 0, .3);
+}
+.emma__icon-btn:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 3px; }
+.emma__icon-btn svg { width: 19px; height: 19px; display: block; }
+
+/* Etykieta wjezdza dopiero po uzbrojeniu kosza - poza tym nie zajmuje miejsca. */
+.emma__btn-label {
+  position: absolute;
+  opacity: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity .16s ease;
+}
+
+/* --- zamkniecie: krzyzyk obraca sie o cwierc obrotu --- */
+.emma__icon-btn--zamknij svg { transition: transform .22s ease; }
+.emma__icon-btn--zamknij:hover svg { transform: rotate(90deg); }
+
+/* --- kosz: wieko unosi sie przy najechaniu --- */
+.emma__kosz-wieko { transition: transform .2s ease; transform-origin: 12px 7px; }
+.emma__icon-btn--kosz:hover .emma__kosz-wieko { transform: translateY(-2px) rotate(-14deg); }
 .emma__icon-btn--kosz:hover {
   background: rgba(234, 161, 198, .3);
-  border-color: rgba(234, 161, 198, .65);
+  border-color: rgba(234, 161, 198, .6);
 }
+
+/*
+   Stan uzbrojony: przycisk rozsuwa sie w pastylke z pytaniem, ikona znika.
+   Drugie klikniecie kasuje rozmowe. Rozbraja sie sam po czterech sekundach.
+*/
+.emma__icon-btn--kosz[data-uzbrojony="true"] {
+  flex-basis: 104px;
+  width: 104px;
+  background: rgba(234, 161, 198, .92);
+  border-color: rgba(234, 161, 198, 1);
+  color: #4A1030;
+  box-shadow: 0 4px 12px rgba(234, 161, 198, .45), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.emma__icon-btn--kosz[data-uzbrojony="true"] svg { display: none; }
+.emma__icon-btn--kosz[data-uzbrojony="true"] .emma__btn-label { opacity: 1; position: static; }
+
+/* ------------------------------------------------------------ wybor jezyka */
+/*
+   Szkola uczy dziewieciu jezykow, wiec rozmowa z Emmbotkiem w kazdym z nich jest
+   jednoczesnie pokazem oferty i darmowa praktyka dla kursanta. Pasek jest waski
+   i stonowany - to opcja, nie glowna akcja.
+*/
+.emma__jezyki {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: linear-gradient(180deg, #F3F8F0 0%, var(--emma-surface) 100%);
+  border-bottom: 1px solid #E3EAEC;
+  font-size: 11.5px;
+}
+.emma__jezyki-etykieta { color: var(--emma-text-soft); flex: 0 0 auto; }
+.emma__jezyk-pole { position: relative; flex: 1 1 auto; min-width: 0; }
+
+.emma__jezyk-przycisk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid #CFDBE0;
+  border-radius: 999px;
+  background: var(--emma-surface);
+  font: inherit;
+  font-size: 12px;
+  color: var(--emma-text);
+  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.emma__jezyk-przycisk:hover { border-color: #AFC2C9; }
+.emma__jezyk-przycisk:focus-visible {
+  outline: none;
+  border-color: var(--emma-base);
+  box-shadow: 0 0 0 3px rgba(19, 59, 71, .14);
+}
+.emma__jezyk-nazwa { flex: 1 1 auto; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Strzalka rysowana obramowaniem - bez dodatkowego pliku i bez znaku, ktorego
+   moglo by zabraknac w kroju. */
+.emma__jezyk-strzalka {
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--emma-text-soft);
+  transition: transform .18s ease;
+}
+.emma__jezyk-przycisk[aria-expanded="true"] .emma__jezyk-strzalka { transform: rotate(180deg); }
+
+/* Flaga: male, ostre prostokaty z cienka obwodka, zeby biel flagi Polski
+   nie zlewala sie z bialym tlem listy. */
+.emma__flaga {
+  flex: 0 0 auto;
+  display: block;
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(19, 59, 71, .18);
+}
+.emma__flaga svg { display: block; }
+
+.emma__jezyk-lista {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 5px);
+  z-index: 5;
+  max-height: 236px;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid #D8E4DA;
+  border-radius: 14px;
+  background: var(--emma-surface);
+  box-shadow: 0 12px 28px rgba(19, 59, 71, .2);
+}
+.emma__jezyk-lista[hidden] { display: none; }
+
+.emma__jezyk-opcja {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--emma-text);
+  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  transition: background-color .14s ease;
+}
+.emma__jezyk-opcja:hover,
+.emma__jezyk-opcja:focus-visible { background: #EEF4EC; outline: none; }
+.emma__jezyk-opcja[aria-selected="true"] { background: var(--emma-base); color: var(--emma-on-dark); font-weight: 600; }
+.emma__jezyk-opcja[aria-selected="true"] .emma__flaga { box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
 
 /* ---------------------------------------------------------------- rozmowa */
 
@@ -356,49 +547,70 @@
 /* ---------------------------------------------------------------- formularz */
 
 .emma__form {
-  display: flex;
-  gap: 8px;
   padding: 10px 14px 12px;
   border-top: 1px solid #E3EAEC;
-  align-items: flex-end;
 }
-.emma__field { position: relative; flex: 1 1 auto; }
 
-.emma__input {
-  width: 100%;
-  min-height: 48px;
-  max-height: 120px;
-  /* Prawy margines tylko tyle, ile trzeba na licznik - a licznik pokazuje sie
-     dopiero pod koniec limitu, wiec zwykle tekst ma cala szerokosc. */
-  padding: 13px 16px;
+/*
+   Jedno pudelko, ktore rosnie razem z tekstem.
+
+   Wczesniej pole i przycisk byly osobnymi klockami stojacymi obok siebie: przy
+   dluzszej wiadomosci pole wyciagalo sie w gore, a przycisk zostawal przy dolnej
+   krawedzi i calosc rozjezdzala sie na dwie czesci. Teraz przycisk siedzi w srodku,
+   a obwodka i stan skupienia naleza do calego pudelka - rosnie jako jedna rzecz.
+
+   `align-items: end` trzyma przycisk przy dolnej krawedzi, gdy tekst ma kilka linijek -
+   tak, jak w kazdym komunikatorze.
+*/
+.emma__field {
+  position: relative;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  padding: 6px 6px 6px 14px;
   border: 1.5px solid #CFDBE0;
-  border-radius: 16px;
-  font: inherit;
-  line-height: 1.45;
-  color: var(--emma-text);
-  resize: none;
+  border-radius: 22px;
   background: #F7FAF9;
   transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
 }
-.emma__input::placeholder { color: #8A9AA1; }
-.emma__input:hover:not(:focus) { border-color: #AFC2C9; }
-.emma__input:focus {
-  outline: none;
+.emma__field:hover { border-color: #AFC2C9; }
+/* Obwodka skupienia na PUDELKU, nie na samym polu tekstowym - inaczej ramka
+   obrysowywalaby tylko czesc tego, co uzytkownik widzi jako jedna calosc. */
+.emma__field:focus-within {
   background: var(--emma-surface);
   border-color: var(--emma-base);
   box-shadow: 0 0 0 3px rgba(19, 59, 71, .14);
 }
 
+.emma__input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 32px;
+  max-height: 132px;
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  line-height: 1.45;
+  color: var(--emma-text);
+  resize: none;
+  overflow-y: hidden;
+}
+.emma__input:focus { outline: none; }
+.emma__input::placeholder { color: #8A9AA1; }
+.emma__input:disabled { color: #8A9AA1; cursor: not-allowed; }
+.emma__field:has(.emma__input:disabled) { background: #F0F3F2; }
+
 /*
    Licznik znakow byl widoczny zawsze i przy pustym polu pokazywal "0/600" -
-   informacja bez zadnej wartosci, ktora tylko zabierala miejsce tekstowi
-   i sugerowala limit tam, gdzie nikt sie o niego nie otrze. Teraz pojawia sie
-   dopiero, gdy naprawde zaczyna byc ciasno.
+   informacja bez zadnej wartosci, ktora tylko zabierala miejsce tekstowi.
+   Teraz pojawia sie dopiero, gdy naprawde zaczyna byc ciasno, i siedzi nad
+   przyciskiem, zeby nie wchodzil na nia tekst.
 */
 .emma__counter {
   position: absolute;
-  right: 12px;
-  bottom: 7px;
+  right: 58px;
+  bottom: 12px;
   padding: 1px 6px;
   border-radius: 8px;
   background: rgba(255, 255, 255, .92);
@@ -412,27 +624,82 @@
 .emma__counter[data-widoczny="true"] { opacity: 1; }
 .emma__counter[data-warn="true"] { color: #A8321E; font-weight: 700; }
 
+/* Okragly, bo siedzi w zaokraglonym polu - kwadrat z promieniem 14 px wygladal
+   w nim jak wciety klocek. */
 .emma__send {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  padding: 11px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 0;
-  border-radius: 14px;
-  background: var(--emma-base);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #1D5566 0%, var(--emma-base) 62%, #0E2E38 100%);
   color: var(--emma-on-dark);
   cursor: pointer;
-  transition: background-color .16s ease, transform .16s ease;
+  box-shadow:
+    0 2px 5px rgba(19, 59, 71, .32),
+    inset 0 1px 0 rgba(255, 255, 255, .28),
+    inset 0 -2px 3px rgba(0, 0, 0, .22);
+  transition: filter .16s ease, transform .12s ease, box-shadow .16s ease;
 }
-.emma__send:hover:not(:disabled) { background: var(--emma-base-strong); transform: translateY(-1px); }
-.emma__send:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-/* Pusty formularz: przycisk widoczny, ale wyraznie nieaktywny - bez zgadywania,
-   czy klikniecie cokolwiek da. */
-.emma__send[data-pusty="true"] { opacity: .45; }
+.emma__send:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
+/* Wcisniecie: guzik siada, cien zewnetrzny znika, wewnetrzny sie poglebia. */
+.emma__send:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px rgba(19, 59, 71, .28),
+    inset 0 2px 4px rgba(0, 0, 0, .3);
+}
+.emma__send:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.emma__send[data-pusty="true"] { opacity: .45; box-shadow: 0 1px 3px rgba(19, 59, 71, .18); }
 .emma__send:focus-visible { outline: 3px solid var(--emma-accent); outline-offset: 2px; }
-.emma__send svg { width: 100%; height: 100%; display: block; }
+.emma__send svg { width: 19px; height: 19px; display: block; margin-left: 1px; }
 
 /* ------------------------------------------------------------- nota RODO */
+
+/* ------------------------------------------------------------- ocena rozmowy */
+/*
+   Ocena minami maskotki zamiast gwiazdek. Emmbotek ma czternascie stanow
+   emocjonalnych - uzycie ich tutaj jest spojne z reszta i czytelne bez tlumaczenia
+   w kazdym z dziewieciu jezykow.
+*/
+.emma__ocena {
+  margin: 0 14px 8px;
+  padding: 10px 12px 12px;
+  border: 1px solid #D8E4DA;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #F3F8F0 0%, #FBFDFA 100%);
+  text-align: center;
+}
+.emma__ocena[hidden] { display: none; }
+.emma__ocena-tytul { margin: 0 0 8px; font-size: 12.5px; font-weight: 700; color: var(--emma-text); }
+.emma__ocena-miny { display: flex; justify-content: center; gap: 4px; }
+
+.emma__ocena-mina {
+  width: 46px;
+  height: 46px;
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: url("kursor-lapka.svg") 12 8, pointer;
+  /* Miny sa domyslnie przygaszone i szare - dopiero najechanie wydobywa kolor
+     i powieksza wybor. Dzieki temu widac, ktora mine sie wskazuje. */
+  filter: grayscale(.55);
+  opacity: .75;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease, border-color .16s ease;
+}
+.emma__ocena-mina:hover,
+.emma__ocena-mina:focus-visible {
+  transform: scale(1.18);
+  filter: none;
+  opacity: 1;
+  border-color: var(--emma-accent);
+  outline: none;
+}
+.emma__ocena-obrazek { width: 100%; height: 100%; border-radius: 50%; display: block; }
 
 /* ------------------------------------------------------------- zgoda na zasady */
 /*

@@ -29,6 +29,11 @@ export function validateChatRequest(body) {
       currentUrl: safeUrl(body?.currentUrl),
       currentPageTitle: typeof body?.currentPageTitle === 'string' ? body.currentPageTitle.slice(0, 200) : null,
       pageType: typeof body?.pageType === 'string' ? body.pageType.slice(0, 40) : null,
+      // Jezyk rozmowy tylko z listy oferowanej przez szkole - dowolny ciag z frontendu
+      // trafialby prosto do System Promptu, a to droga do wstrzykniecia instrukcji.
+      language: config.school.chatLanguages.some((item) => item.kod === body?.language)
+        ? body.language
+        : 'pl',
       profile: body?.profile && typeof body.profile === 'object' ? body.profile : {},
       shownCtas: Array.isArray(body?.shownCtas) ? body.shownCtas.filter((item) => typeof item === 'string').slice(0, 20) : [],
     },

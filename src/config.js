@@ -30,7 +30,23 @@ export const config = {
     name: 'eMMa - Prywatne Studio Jezykow Obcych',
     city: 'Poznan',
     since: 1992,
+    /**
+     * Jezyki, w ktorych mozna prowadzic rozmowe z Emmbotkiem - te same, ktorych
+     * uczy szkola. `kod` idzie do atrybutu lang, `nazwa` na przycisk wyboru,
+     * `wlasna` to nazwa jezyka w nim samym (tak podpisuje sie go na liscie).
+     */
     languages: ['angielski', 'hiszpanski'],
+    chatLanguages: [
+      { kod: 'pl', nazwa: 'polski', wlasna: 'Polski' },
+      { kod: 'en', nazwa: 'angielski', wlasna: 'English' },
+      { kod: 'es', nazwa: 'hiszpanski', wlasna: 'Español' },
+      { kod: 'de', nazwa: 'niemiecki', wlasna: 'Deutsch' },
+      { kod: 'fr', nazwa: 'francuski', wlasna: 'Français' },
+      { kod: 'it', nazwa: 'wloski', wlasna: 'Italiano' },
+      { kod: 'ru', nazwa: 'rosyjski', wlasna: 'Русский' },
+      { kod: 'uk', nazwa: 'ukrainski', wlasna: 'Українська' },
+      { kod: 'ko', nazwa: 'koreanski', wlasna: '한국어' },
+    ],
     groupSize: '4-8 osob',
   },
   site: {

@@ -8,13 +8,36 @@ import { json, checkOrigin, applyCors, readJsonBody } from '../http.js';
 import { CTA_TYPES } from '../../agent/ctaEngine.js';
 import { INTENTS } from '../../knowledge/types.js';
 
-const EVENTS = new Set(['cta_impression', 'cta_click']);
+const EVENTS = new Set(['cta_impression', 'cta_click', 'ocena']);
 const STAGES = new Set(['eksploracja', 'dopasowanie', 'decyzja', 'kontakt']);
 
 /** Sprowadza zdarzenie do bezpiecznego, zanonimizowanego ksztaltu. */
 export function normalizeEvent(input) {
   const event = String(input?.event ?? '');
   if (!EVENTS.has(event)) return null;
+
+  /*
+    Ocena rozmowy ma inny ksztalt niz zdarzenie CTA: zamiast typu przycisku niesie
+    stopien w skali 1-5. Zapisujemy ja tym samym kanalem, zeby nie mnozyc tabel -
+    stopien laduje w kolumnie etapu, ktora przy ocenie i tak nie ma innego znaczenia.
+  */
+  if (event === 'ocena') {
+    const stopien = Number(input?.rating);
+    if (!Number.isInteger(stopien) || stopien < 1 || stopien > 5) return null;
+    let page = null;
+    const rawPage = typeof input?.currentPage === 'string' ? input.currentPage : '';
+    if (rawPage) {
+      try { page = new URL(rawPage, 'https://placeholder.local').pathname.slice(0, 120); }
+      catch { page = null; }
+    }
+    return {
+      event,
+      ctaType: 'OCENA',
+      sourceIntent: 'GENERAL',
+      conversationStage: String(stopien),
+      currentPage: page,
+    };
+  }
 
   const ctaType = String(input?.ctaType ?? '').toUpperCase();
   if (!CTA_TYPES.includes(ctaType)) return null;

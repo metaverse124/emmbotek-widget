@@ -76,6 +76,44 @@ const cosine = (a, b) => {
  * @param {number[]} options.queryEmbedding  opcjonalny wektor pytania
  * @returns {Array} posortowane fragmenty z metadanymi i wyjasnieniem rankingu
  */
+/**
+ * Wiedza zapasowa, gdy dopasowanie po slowach nie zadzialalo.
+ *
+ * Retrieval opiera sie na slowach kluczowych, a baza wiedzy jest po polsku. Pytanie
+ * zadane po hiszpansku czy koreansku nie ma z nia wspolnych slow, wiec wynik jest pusty
+ * i Emmbotek odpowiada "nie mam tych danych" - mimo ze cennik ma tuz obok.
+ *
+ * Zamiast tego podajemy mu przekroj najwazniejszych dokumentow. Model sam przetlumaczy
+ * to, co potrzebne. To obejscie, nie rozwiazanie - wlasciwym lekarstwem sa embeddingi,
+ * ktore dopasowuja znaczenie zamiast liter.
+ */
+export function baselineKnowledge(base, { limit = config.limits.maxRetrievedChunks, now = Date.now() } = {}) {
+  const wazne = ['PRICE', 'COURSE', 'LANDING_PAGE', 'CONTACT'];
+  const wynik = [];
+
+  for (const typ of wazne) {
+    for (const doc of activeDocuments(base)) {
+      if (doc.sourceType !== typ) continue;
+      const chunk = doc.chunks[0];
+      if (!chunk) continue;
+      wynik.push({
+        id: chunk.id,
+        text: chunk.text,
+        heading: chunk.heading ?? null,
+        anchor: chunk.anchor ?? null,
+        sourceUrl: doc.sourceUrl,
+        sourceTitle: doc.sourceTitle,
+        sourceType: doc.sourceType,
+        freshness: freshnessLabel(doc, now),
+        score: 0.01,
+        why: 'przekroj zapasowy - pytanie w innym jezyku niz baza wiedzy',
+      });
+      if (wynik.length >= limit) return wynik;
+    }
+  }
+  return wynik;
+}
+
 export function retrieve(base, query, options = {}) {
   const {
     intent = 'GENERAL',

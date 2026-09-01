@@ -14,7 +14,7 @@ import { defaultLimiter } from '../rateLimit.js';
 import { validateChatRequest } from '../validate.js';
 import { detectIntent } from '../../agent/intents.js';
 import { extractProfileSignals, mergeProfile, conversationStage } from '../../agent/profile.js';
-import { retrieve, hasUsableKnowledge } from '../../knowledge/retrieval.js';
+import { retrieve, hasUsableKnowledge, baselineKnowledge } from '../../knowledge/retrieval.js';
 import { knowledgeProvider } from '../../knowledge/provider.js';
 import { buildKnowledgeBlock, guardUserMessage } from '../../agent/injectionGuard.js';
 import { buildSystemPrompt } from '../../agent/systemPrompt.js';
@@ -90,14 +90,24 @@ export function createChatHandler({
     const profile = mergeProfile(value.profile, extractProfileSignals(guarded.text));
 
     const base = await getBase(loadKnowledge);
-    const knowledge = retrieve(base, guarded.text, {
+    let knowledge = retrieve(base, guarded.text, {
       intent,
       currentUrl: value.currentUrl,
       now: timestamp.getTime(),
     });
 
-    // Knowledge gap: pytanie bez pokrycia w bazie wiedzy (sekcja 40) - zapis wylacznie anonimowy
-    if (!hasUsableKnowledge(knowledge) && onGap) {
+    // Pytanie w obcym jezyku nie trafia w polska baze wiedzy po slowach kluczowych.
+    // Zamiast odpowiadac "nie mam tych danych" przy cenniku lezacym obok, podajemy
+    // modelowi przekroj najwazniejszych dokumentow - sam przetlumaczy, co trzeba.
+    const jezykObcy = value.language && value.language !== 'pl';
+    if (jezykObcy && !hasUsableKnowledge(knowledge)) {
+      knowledge = baselineKnowledge(base, { now: timestamp.getTime() });
+    }
+
+    // Knowledge gap: pytanie bez pokrycia w bazie wiedzy (sekcja 40) - zapis wylacznie anonimowy.
+    // Pytan w obcym jezyku tu nie liczymy: to ograniczenie retrievalu, nie brak tresci
+    // na stronie - trafialyby do rejestru jako falszywe luki.
+    if (!hasUsableKnowledge(knowledge) && !jezykObcy && onGap) {
       try {
         await onGap(guarded.text, { intent, topScore: knowledge[0]?.score ?? 0, now: timestamp.toISOString() });
       } catch { /* telemetria nigdy nie blokuje odpowiedzi */ }
@@ -110,6 +120,7 @@ export function createChatHandler({
       profile,
       ctaTargets: base.ctaMap ?? {},
       knowledge: buildKnowledgeBlock(knowledge),
+      language: value.language,
       injectionAttempt: guarded.injectionAttempt,
       summary,
       now: timestamp.toISOString(),

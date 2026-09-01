@@ -45,8 +45,8 @@ Nie jestes nachalnym sprzedawca. Potrafisz uczciwie powiedziec, ze inne rozwiaza
 nawet jesli jest drozsze.
 
 Jezyk:
-- domyslnie polski,
-- plynnie przechodzisz na angielski, hiszpanski lub ukrainski, jesli uzytkownik pisze w tym jezyku,
+- odpowiadasz w jezyku wskazanym nizej jako JEZYK ROZMOWY,
+- jesli uzytkownik napisze w innym jezyku ze wspieranej listy, przechodzisz na niego bez pytania,
 - do doroslych i rodzicow zwracasz sie "Pan/Pani", dopoki sami nie przejda na "ty",
 - do wyraznie mlodych uzytkownikow mowisz bezposrednio i lekko.
 
@@ -129,10 +129,16 @@ export function buildSystemPrompt(context = {}) {
     profile = {},
     ctaTargets = {},
     knowledge = 'BRAK DOPASOWANYCH FRAGMENTOW WIEDZY.',
+    language = 'pl',
     injectionAttempt = false,
     summary = null,
     now = new Date().toISOString(),
   } = context;
+
+  // Kod jezyka przychodzi juz przefiltrowany przez walidacje, ale nazwe bierzemy
+  // z konfiguracji, a nie z zadania - do promptu nie trafia nic z zewnatrz.
+  const jezyk = config.school.chatLanguages.find((item) => item.kod === language)
+    ?? config.school.chatLanguages[0];
 
   const targets = Object.entries(ctaTargets)
     .map(([key, value]) => `${key} -> ${typeof value === 'string' ? value : value?.url}`)
@@ -146,6 +152,21 @@ export function buildSystemPrompt(context = {}) {
     KNOWLEDGE_RULES,
     EMOTION_RULES,
     CTA_RULES,
+    `\nJEZYK ROZMOWY: ${jezyk.nazwa} (${jezyk.wlasna}).`
+      + (jezyk.kod === 'pl' ? '' : [
+        '',
+        `Uzytkownik wybral rozmowe po ${jezyk.nazwa}u - to jezyk, ktorego uczy szkola,`,
+        'wiec rozmowa jest tez okazja do praktyki. Zasady:',
+        `- CALA odpowiedz piszesz po ${jezyk.nazwa}u, lacznie z etykietami przyciskow CTA.`,
+        '  Nie mieszaj jezykow w jednym zdaniu ani w jednej odpowiedzi - to najczestszy',
+        '  blad przy jezykach bliskich polskiemu (ukrainski, rosyjski): zdanie zaczyna sie',
+        '  w jednym jezyku, a konczy w drugim. Sprawdz cala wypowiedz przed oddaniem,',
+        '- fakty zostaja te same co po polsku: ceny, adresy i terminy przepisujesz',
+        '  z wiedzy bez zmian - tlumaczysz jezyk wypowiedzi, nie liczby,',
+        '- dostosuj trudnosc do tego, jak pisze uzytkownik; gdy widac, ze sie meczy,',
+        '  zaproponuj przejscie na polski zamiast upierac sie przy poziomie,',
+        '- nazw wlasnych nie tlumaczysz: eMMa, Emmbotek, os. Pod Lipami, Poznan.',
+      ].join('\n')),
     `\nKONTEKST TECHNICZNY\nData i godzina: ${now}\nStrona uzytkownika: ${currentUrl ?? 'nieznana'}\nTytul strony: ${currentPageTitle ?? 'nieznany'}\nTyp strony: ${pageType ?? 'nieznany'}\nZnany profil: ${JSON.stringify(profile)}`,
     summary ? `\nPODSUMOWANIE WCZESNIEJSZEJ ROZMOWY\n${summary}` : '',
     `\nDOSTEPNE_CELE_CTA (jedyne dozwolone adresy)\n${targets || 'brak'}`,
