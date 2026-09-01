@@ -101,6 +101,19 @@ npm run build
    **Nie pomijaj** katalogu `emmbotek/` ani pliku `wiedza.json` — bez pierwszego nie ma
    widżetu, bez drugiego asystent nie zna oferty.
 
+> **UWAGA: `konfiguracja.php` NIE jest w paczce i tak ma być.** To plik z hasłem do
+> skrzynki pocztowej, potrzebny formularzowi kontaktowemu. Leży **tylko na serwerze**,
+> wgrany raz ręcznie — build celowo wycina go z wydania, żeby hasło nie krążyło
+> w archiwach i żeby nowa paczka nie nadpisała działającej konfiguracji.
+>
+> **Niczego z nim nie rób.** Nie usuwaj go z hostingu — bez niego formularz przestaje
+> wysyłać maile. Nie wgrywaj też przez synchronizację lustrzaną z usuwaniem plików
+> (np. WinSCP „Synchronizuj" z zaznaczonym kasowaniem), bo skasuje go jako „nadmiarowy".
+> Wgrywaj zwykłym kopiowaniem z nadpisaniem.
+>
+> Gdyby jednak zniknął: wgraj ponownie `public/konfiguracja.php` z repozytorium strony
+> do katalogu głównego witryny, obok `formularz.php`.
+
 4. Upewnij się, że `.htaccess` z paczki nadpisał ten na serwerze. Zawiera dwa nowe
    wyjątki: na `wiedza.json` i na `manifest.json`. Bez nich reguła blokująca pliki `.json`
    odpowie **błędem 403** — asystent nie pozna oferty i pokaże się bez maskotki.
