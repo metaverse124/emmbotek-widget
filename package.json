@@ -11,7 +11,8 @@
     "avatars": "python3 scripts/extract_avatars.py",
     "dev": "node --env-file-if-exists=.env scripts/dev-server.mjs",
     "luki": "node --env-file=.env scripts/luki.mjs",
-    "paczka-widget": "node scripts/paczka-widget.mjs"
+    "paczka-widget": "node scripts/paczka-widget.mjs",
+    "test-wdrozenia": "node scripts/test-wdrozenia.mjs"
   },
   "dependencies": {}
 }
